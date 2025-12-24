@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model admin_action {
+  action_id                                Int       @id @default(autoincrement())
+  admin_id                                 Int?
+  target_user_id                           Int?
+  action_type                              String?   @db.VarChar(50)
+  action_description                       String?
+  timestamp                                DateTime? @default(now()) @db.Timestamp(6)
+  users_admin_action_admin_idTousers       users?    @relation("admin_action_admin_idTousers", fields: [admin_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  users_admin_action_target_user_idTousers users?    @relation("admin_action_target_user_idTousers", fields: [target_user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model booking {
+  booking_id      Int               @id @default(autoincrement())
+  tourist_id      Int?
+  guide_id        Int?
+  hotel_id        Int?
+  start_date      DateTime?         @db.Date
+  end_date        DateTime?         @db.Date
+  status          String?           @db.VarChar(50)
+  total_price     Decimal?          @db.Decimal(10, 2)
+  guide           guide?            @relation(fields: [guide_id], references: [guide_id], onDelete: NoAction, onUpdate: NoAction)
+  hotel           hotel?            @relation(fields: [hotel_id], references: [hotel_id], onDelete: NoAction, onUpdate: NoAction)
+  tourist         tourist?          @relation(fields: [tourist_id], references: [tourist_id], onDelete: NoAction, onUpdate: NoAction)
+  incident_report incident_report[]
+}
+
+model guide {
+  guide_id         Int       @id
+  bio              String?
+  experience_years Int?
+  license_number   String?   @db.VarChar(100)
+  verified_status  Boolean?  @default(false)
+  booking          booking[]
+  users            users     @relation(fields: [guide_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  review           review[]
+}
+
+model hotel {
+  hotel_id    Int       @id
+  hotel_name  String?   @db.VarChar(200)
+  location    String?   @db.VarChar(200)
+  description String?
+  rating      Float?
+  booking     booking[]
+  users       users     @relation(fields: [hotel_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  review      review[]
+}
+
+model incident_report {
+  incident_id   Int       @id @default(autoincrement())
+  tourist_id    Int?
+  booking_id    Int?
+  incident_type String?   @db.VarChar(50)
+  details       String?
+  location      String?   @db.VarChar(200)
+  created_at    DateTime? @default(now()) @db.Timestamp(6)
+  booking       booking?  @relation(fields: [booking_id], references: [booking_id], onDelete: NoAction, onUpdate: NoAction)
+  tourist       tourist?  @relation(fields: [tourist_id], references: [tourist_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model review {
+  review_id  Int       @id @default(autoincrement())
+  tourist_id Int?
+  guide_id   Int?
+  hotel_id   Int?
+  rating     Int?
+  comment    String?
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  guide      guide?    @relation(fields: [guide_id], references: [guide_id], onDelete: NoAction, onUpdate: NoAction)
+  hotel      hotel?    @relation(fields: [hotel_id], references: [hotel_id], onDelete: NoAction, onUpdate: NoAction)
+  tourist    tourist?  @relation(fields: [tourist_id], references: [tourist_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model sos_report {
+  report_id   Int       @id @default(autoincrement())
+  tourist_id  Int?
+  location    String?   @db.VarChar(200)
+  timestamp   DateTime? @default(now()) @db.Timestamp(6)
+  description String?
+  status      String?   @db.VarChar(30)
+  tourist     tourist?  @relation(fields: [tourist_id], references: [tourist_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model tourist {
+  tourist_id        Int               @id
+  emergency_contact String?           @db.VarChar(100)
+  preferences       String?
+  booking           booking[]
+  incident_report   incident_report[]
+  review            review[]
+  sos_report        sos_report[]
+  users             users             @relation(fields: [tourist_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model users {
+  user_id                                         Int            @id @default(autoincrement())
+  full_name                                       String         @db.VarChar(150)
+  email                                           String         @unique @db.VarChar(255)
+  password                                        String         @db.VarChar(255)
+  phone                                           String?        @db.VarChar(50)
+  role                                            String         @db.VarChar(20)
+  created_at                                      DateTime?      @default(now()) @db.Timestamp(6)
+  admin_action_admin_action_admin_idTousers       admin_action[] @relation("admin_action_admin_idTousers")
+  admin_action_admin_action_target_user_idTousers admin_action[] @relation("admin_action_target_user_idTousers")
+  guide                                           guide?
+  hotel                                           hotel?
+  tourist                                         tourist?
+}
