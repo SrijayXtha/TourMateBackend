@@ -3,7 +3,9 @@ import express from "express";
 import cors from "cors";
 
 import authRoutes from "./routes/auth.routes";
-import { prisma } from "./prisma";
+import { checkDatabaseConnection } from "./db-check";
+// Note: Prisma client import is intentionally avoided here to allow a lightweight DB connectivity check
+// without causing the server to crash if the generated Prisma client requires special adapter configuration.
 
 const app = express();
 
@@ -23,13 +25,13 @@ app.get("/", (req, res) => {
   res.send("🚀 TourMate Backend Running...");
 });
 
-// HEALTH CHECK ROUTE
+// HEALTH CHECK ROUTE (uses lightweight PG check to avoid crashing on Prisma import issues)
 app.get("/health", async (req, res) => {
-  try {
-    await prisma.$queryRaw`SELECT 1`;
+  const result = await checkDatabaseConnection();
+  if (result.ok) {
     res.json({ status: "✅ Healthy", database: "✅ Connected" });
-  } catch (error) {
-    res.status(500).json({ status: "❌ Unhealthy", database: "❌ Disconnected", error: (error as Error).message });
+  } else {
+    res.status(500).json({ status: "❌ Unhealthy", database: "❌ Disconnected", error: result.message });
   }
 });
 

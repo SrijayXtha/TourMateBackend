@@ -1,33 +1,28 @@
-import { PrismaClient } from "../generated/prisma/client";
+import { PrismaClient } from "@prisma/client";
+import { Pool } from "pg";
+import { PrismaPg } from "@prisma/adapter-pg";
 
 declare global {
-  var prisma: InstanceType<typeof PrismaClient> | undefined;
+  // eslint-disable-next-line no-var
+  var prisma: PrismaClient | undefined;
 }
 
-let prisma: InstanceType<typeof PrismaClient>;
+// Create PostgreSQL connection pool
+const connectionString = process.env.DATABASE_URL;
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
 
-if (!global.prisma) {
-  console.log("🔧 Initializing Prisma Client...");
-  console.log("📍 Database URL:", process.env.DATABASE_URL ? "✅ Configured" : "❌ Not configured");
-  
-  global.prisma = new PrismaClient({} as any);
-  
-  console.log("✅ Prisma Client initialized");
+// Initialize PrismaClient with adapter for Prisma 7
+export const prisma = global.prisma || new PrismaClient({ adapter });
+
+if (process.env.NODE_ENV !== "production") {
+  global.prisma = prisma;
 }
-prisma = global.prisma;
 
-// Test database connection on startup
-setTimeout(() => {
-  prisma.$connect()
-    .then(() => {
-      console.log("✅ Database connection successful!");
-    })
-    .catch((err) => {
-      console.error("❌ Database connection failed:", err.message);
-    });
-}, 100);
-
-export { prisma };
+// Connect to database
+prisma.$connect()
+  .then(() => console.log("✅ Prisma connected to database"))
+  .catch((err) => console.error("❌ Prisma connection error:", err.message));
 
 
 
