@@ -16,6 +16,7 @@ app.use(express.json());
 console.log("📝 Environment Configuration:");
 console.log("  PORT:", process.env.PORT || 4000);
 console.log("  DATABASE_URL:", process.env.DATABASE_URL ? "✅ Configured" : "❌ Not configured");
+console.log("  GOOGLE_CLIENT_ID:", process.env.GOOGLE_CLIENT_ID ? "✅ Configured" : "❌ Not configured");
 
 // ROUTES
 app.use("/auth", authRoutes);

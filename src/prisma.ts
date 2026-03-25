@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../generated/prisma";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 
@@ -22,7 +22,10 @@ if (process.env.NODE_ENV !== "production") {
 // Connect to database
 prisma.$connect()
   .then(() => console.log("✅ Prisma connected to database"))
-  .catch((err) => console.error("❌ Prisma connection error:", err.message));
+  .catch((err: unknown) => {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("❌ Prisma connection error:", message);
+  });
 
 
 
