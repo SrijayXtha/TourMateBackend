@@ -9,18 +9,29 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const google_auth_library_1 = require("google-auth-library");
 const prisma_1 = require("../prisma");
 const response_1 = require("../utils/response");
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
+const JWT_SECRET = process.env.JWT_SECRET;
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const googleClient = GOOGLE_CLIENT_ID ? new google_auth_library_1.OAuth2Client(GOOGLE_CLIENT_ID) : null;
+const requireJwtSecret = (res) => {
+    if (!JWT_SECRET) {
+        (0, response_1.sendError)(res, 500, "JWT_SECRET is not configured on server");
+        return null;
+    }
+    return JWT_SECRET;
+};
 /**
  * POST /auth/register
  * Register a new user (tourist, guide, or hotel only)
  */
 const register = async (req, res) => {
     try {
-        const { fullName, email, password, phone, role } = req.body;
+        const jwtSecret = requireJwtSecret(res);
+        if (!jwtSecret) {
+            return;
+        }
+        const { fullName, email, password, phone, role, experienceYears, businessName } = req.body;
         // Validate required fields
-        const validationError = (0, response_1.validateRequired)({ fullName, email, password, role }, ["fullName", "email", "password", "role"]);
+        const validationError = (0, response_1.validateRequired)({ fullName, email, password, phone, role }, ["fullName", "email", "password", "phone", "role"]);
         if (validationError) {
             return (0, response_1.sendError)(res, 400, validationError);
         }
@@ -40,10 +51,17 @@ const register = async (req, res) => {
         if (!(0, response_1.validatePassword)(password)) {
             return (0, response_1.sendError)(res, 400, "Password must be at least 6 characters long");
         }
-        // Check if user already exists
+        // Check if user already exists by email
         const existingUser = await prisma_1.prisma.users.findUnique({ where: { email } });
         if (existingUser) {
-            return (0, response_1.sendError)(res, 409, "User with this email already exists");
+            return (0, response_1.sendError)(res, 409, "Account with this email already exists");
+        }
+        // Check if phone number already exists (if provided)
+        if (phone) {
+            const existingPhone = await prisma_1.prisma.users.findFirst({ where: { phone } });
+            if (existingPhone) {
+                return (0, response_1.sendError)(res, 409, "Account with this phone number already exists");
+            }
         }
         // Hash password
         const hashedPassword = await bcryptjs_1.default.hash(password, 10);
@@ -69,13 +87,15 @@ const register = async (req, res) => {
                 });
             }
             else if (role.toLowerCase() === "guide") {
+                const expYears = parseInt(experienceYears || "0", 10) || 0;
                 await prisma_1.prisma.guide.create({
                     data: {
                         guide_id: user.user_id,
                         bio: null,
-                        experience_years: 0,
+                        experience_years: expYears,
                         license_number: null,
                         verified_status: false,
+                        is_available: true,
                     },
                 });
             }
@@ -83,10 +103,11 @@ const register = async (req, res) => {
                 await prisma_1.prisma.hotel.create({
                     data: {
                         hotel_id: user.user_id,
-                        hotel_name: fullName,
+                        hotel_name: businessName || fullName,
                         location: null,
                         description: null,
                         rating: null,
+                        verified_status: false,
                     },
                 });
             }
@@ -98,7 +119,7 @@ const register = async (req, res) => {
             return (0, response_1.sendError)(res, 500, "Error creating user profile");
         }
         // Generate JWT token
-        const token = jsonwebtoken_1.default.sign({ id: user.user_id, role: user.role }, JWT_SECRET, { expiresIn: "24h" });
+        const token = jsonwebtoken_1.default.sign({ id: user.user_id, role: user.role }, jwtSecret, { expiresIn: "24h" });
         return (0, response_1.sendSuccess)(res, 201, "User registered successfully", {
             token,
             user: {
@@ -124,6 +145,10 @@ exports.register = register;
  */
 const login = async (req, res) => {
     try {
+        const jwtSecret = requireJwtSecret(res);
+        if (!jwtSecret) {
+            return;
+        }
         const { email, password } = req.body;
         // Validate required fields
         const validationError = (0, response_1.validateRequired)({ email, password }, ["email", "password"]);
@@ -141,7 +166,7 @@ const login = async (req, res) => {
             return (0, response_1.sendError)(res, 401, "Invalid credentials");
         }
         // Generate JWT token
-        const token = jsonwebtoken_1.default.sign({ id: user.user_id, role: user.role }, JWT_SECRET, { expiresIn: "24h" });
+        const token = jsonwebtoken_1.default.sign({ id: user.user_id, role: user.role }, jwtSecret, { expiresIn: "24h" });
         return (0, response_1.sendSuccess)(res, 200, "Login successful", {
             token,
             user: {
@@ -167,6 +192,10 @@ exports.login = login;
  */
 const googleLogin = async (req, res) => {
     try {
+        const jwtSecret = requireJwtSecret(res);
+        if (!jwtSecret) {
+            return;
+        }
         const { idToken, role } = req.body;
         // Validate idToken
         if (!idToken) {
@@ -233,9 +262,10 @@ const googleLogin = async (req, res) => {
                         data: {
                             guide_id: user.user_id,
                             bio: null,
-                            experience_years: 0,
+                            experience_years: 1,
                             license_number: null,
                             verified_status: false,
+                            is_available: true,
                         },
                     });
                 }
@@ -247,6 +277,7 @@ const googleLogin = async (req, res) => {
                             location: null,
                             description: null,
                             rating: null,
+                            verified_status: false,
                         },
                     });
                 }
@@ -257,6 +288,7 @@ const googleLogin = async (req, res) => {
                     user = await prisma_1.prisma.users.findUnique({ where: { email: payload.email } });
                 }
                 else {
+                    console.error("Error creating Google user or role profile:", createError);
                     throw createError;
                 }
             }
@@ -265,7 +297,7 @@ const googleLogin = async (req, res) => {
             return (0, response_1.sendError)(res, 500, "Unable to resolve Google user");
         }
         // Generate JWT token
-        const token = jsonwebtoken_1.default.sign({ id: user.user_id, role: user.role }, JWT_SECRET, { expiresIn: "24h" });
+        const token = jsonwebtoken_1.default.sign({ id: user.user_id, role: user.role }, jwtSecret, { expiresIn: "24h" });
         return (0, response_1.sendSuccess)(res, 200, "Google login successful", {
             token,
             user: {

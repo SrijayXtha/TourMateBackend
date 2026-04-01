@@ -13,9 +13,18 @@ import {
   validateRole,
 } from "../utils/response";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
+const JWT_SECRET = process.env.JWT_SECRET;
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
+
+const requireJwtSecret = (res: Response): string | null => {
+  if (!JWT_SECRET) {
+    sendError(res, 500, "JWT_SECRET is not configured on server");
+    return null;
+  }
+
+  return JWT_SECRET;
+};
 
 /**
  * POST /auth/register
@@ -23,12 +32,17 @@ const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : nul
  */
 export const register = async (req: Request, res: Response) => {
   try {
-    const { fullName, email, password, phone, role } = req.body;
+    const jwtSecret = requireJwtSecret(res);
+    if (!jwtSecret) {
+      return;
+    }
+
+    const { fullName, email, password, phone, role, experienceYears, businessName } = req.body;
 
     // Validate required fields
     const validationError = validateRequired(
-      { fullName, email, password, role },
-      ["fullName", "email", "password", "role"]
+      { fullName, email, password, phone, role },
+      ["fullName", "email", "password", "phone", "role"]
     );
     if (validationError) {
       return sendError(res, 400, validationError);
@@ -93,23 +107,26 @@ export const register = async (req: Request, res: Response) => {
           },
         });
       } else if (role.toLowerCase() === "guide") {
+        const expYears = parseInt(experienceYears || "0", 10) || 0;
         await prisma.guide.create({
           data: {
             guide_id: user.user_id,
             bio: null,
-            experience_years: 0,
+            experience_years: expYears,
             license_number: null,
             verified_status: false,
+            is_available: true,
           },
         });
       } else if (role.toLowerCase() === "hotel") {
         await prisma.hotel.create({
           data: {
             hotel_id: user.user_id,
-            hotel_name: fullName,
+            hotel_name: businessName || fullName,
             location: null,
             description: null,
             rating: null,
+            verified_status: false,
           },
         });
       }
@@ -123,7 +140,7 @@ export const register = async (req: Request, res: Response) => {
     // Generate JWT token
     const token = jwt.sign(
       { id: user.user_id, role: user.role },
-      JWT_SECRET,
+      jwtSecret,
       { expiresIn: "24h" }
     );
 
@@ -155,6 +172,11 @@ export const register = async (req: Request, res: Response) => {
  */
 export const login = async (req: Request, res: Response) => {
   try {
+    const jwtSecret = requireJwtSecret(res);
+    if (!jwtSecret) {
+      return;
+    }
+
     const { email, password } = req.body;
 
     // Validate required fields
@@ -178,7 +200,7 @@ export const login = async (req: Request, res: Response) => {
     // Generate JWT token
     const token = jwt.sign(
       { id: user.user_id, role: user.role },
-      JWT_SECRET,
+      jwtSecret,
       { expiresIn: "24h" }
     );
 
@@ -210,6 +232,11 @@ export const login = async (req: Request, res: Response) => {
  */
 export const googleLogin = async (req: Request, res: Response) => {
   try {
+    const jwtSecret = requireJwtSecret(res);
+    if (!jwtSecret) {
+      return;
+    }
+
     const { idToken, role } = req.body as { idToken?: string; role?: string };
 
     // Validate idToken
@@ -289,9 +316,10 @@ export const googleLogin = async (req: Request, res: Response) => {
             data: {
               guide_id: user.user_id,
               bio: null,
-              experience_years: 0,
+              experience_years: 1,
               license_number: null,
               verified_status: false,
+              is_available: true,
             },
           });
         } else if (userRole === "hotel") {
@@ -302,6 +330,7 @@ export const googleLogin = async (req: Request, res: Response) => {
               location: null,
               description: null,
               rating: null,
+              verified_status: false,
             },
           });
         }
@@ -310,6 +339,7 @@ export const googleLogin = async (req: Request, res: Response) => {
           // User was created by another request, fetch it
           user = await prisma.users.findUnique({ where: { email: payload.email } });
         } else {
+          console.error("Error creating Google user or role profile:", createError);
           throw createError;
         }
       }
@@ -322,7 +352,7 @@ export const googleLogin = async (req: Request, res: Response) => {
     // Generate JWT token
     const token = jwt.sign(
       { id: user.user_id, role: user.role },
-      JWT_SECRET,
+      jwtSecret,
       { expiresIn: "24h" }
     );
 

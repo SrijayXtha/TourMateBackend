@@ -39,20 +39,26 @@ model guide {
   experience_years Int?
   license_number   String?   @db.VarChar(100)
   verified_status  Boolean?  @default(false)
+  is_available     Boolean?  @default(true)
   booking          booking[]
   users            users     @relation(fields: [guide_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
   review           review[]
 }
 
 model hotel {
-  hotel_id    Int       @id
-  hotel_name  String?   @db.VarChar(200)
-  location    String?   @db.VarChar(200)
-  description String?
-  rating      Float?
-  booking     booking[]
-  users       users     @relation(fields: [hotel_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
-  review      review[]
+  hotel_id        Int       @id
+  hotel_name      String?   @db.VarChar(200)
+  location        String?   @db.VarChar(200)
+  description     String?
+  rating          Float?
+  verified_status Boolean?  @default(false)
+  base_price      Decimal?  @db.Decimal(10, 2)
+  images          String?
+  room_details    String?
+  facilities      String?
+  booking         booking[]
+  users           users     @relation(fields: [hotel_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  review          review[]
 }
 
 model incident_report {
@@ -94,11 +100,36 @@ model tourist {
   tourist_id        Int               @id
   emergency_contact String?           @db.VarChar(100)
   preferences       String?
+  saved_places      String?
+  payment_methods   String?
+  privacy_settings  String?
   booking           booking[]
   incident_report   incident_report[]
   review            review[]
   sos_report        sos_report[]
   users             users             @relation(fields: [tourist_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model notification {
+  notification_id Int       @id @default(autoincrement())
+  user_id         Int
+  title           String    @db.VarChar(120)
+  message         String
+  type            String?   @db.VarChar(40)
+  is_read         Boolean?  @default(false)
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  users           users     @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model message {
+  message_id               Int       @id @default(autoincrement())
+  sender_id                Int
+  receiver_id              Int
+  content                  String
+  is_read                  Boolean?  @default(false)
+  sent_at                  DateTime? @default(now()) @db.Timestamp(6)
+  users_message_receiver   users     @relation("message_receiver", fields: [receiver_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+  users_message_sender     users     @relation("message_sender", fields: [sender_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model users {
@@ -111,6 +142,9 @@ model users {
   created_at                                      DateTime?      @default(now()) @db.Timestamp(6)
   admin_action_admin_action_admin_idTousers       admin_action[] @relation("admin_action_admin_idTousers")
   admin_action_admin_action_target_user_idTousers admin_action[] @relation("admin_action_target_user_idTousers")
+  message_message_receiver                        message[]      @relation("message_receiver")
+  message_message_sender                          message[]      @relation("message_sender")
+  notification                                    notification[]
   guide                                           guide?
   hotel                                           hotel?
   tourist                                         tourist?
