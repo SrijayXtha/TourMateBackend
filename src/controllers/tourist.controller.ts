@@ -347,7 +347,7 @@ export const createBooking = async (req: Request, res: Response) => {
         return sendError(res, 404, "Guide not found");
       }
 
-      if (guide.verified_status === false) {
+      if (guide.verified_status !== true) {
         return sendError(res, 400, "This guide is not yet verified for bookings");
       }
     }

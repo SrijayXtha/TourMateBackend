@@ -261,26 +261,45 @@ export const rejectGuide = async (req: Request, res: Response) => {
   try {
     const { guideId } = req.params;
     const { reason } = req.body;
+    const parsedId = Number.parseInt(guideId, 10);
 
     const guide = await prisma.guide.findUnique({
-      where: { guide_id: parseInt(guideId) },
+      where: { guide_id: parsedId },
     });
 
     if (!guide) {
       return sendError(res, 404, "Guide not found");
     }
 
+    const updated = await prisma.guide.update({
+      where: { guide_id: parsedId },
+      data: { verified_status: null },
+    });
+
+    await prisma.notification.create({
+      data: {
+        user_id: parsedId,
+        title: "Guide verification update",
+        message: reason
+          ? `Your guide verification was rejected: ${reason}`
+          : "Your guide verification was rejected.",
+        type: "verification",
+        is_read: false,
+      },
+    });
+
     // Log admin action
     await prisma.admin_action.create({
       data: {
         action_type: "guide_rejected",
-        target_user_id: parseInt(guideId),
+        target_user_id: parsedId,
         action_description: `Guide ${guide.guide_id} rejected. Reason: ${reason || "N/A"}`,
       },
     });
 
     return sendSuccess(res, 200, "Guide rejected", {
-      guideId,
+      guideId: updated.guide_id,
+      verifiedStatus: updated.verified_status,
       reason: reason || "No reason provided",
     });
   } catch (error) {
@@ -361,7 +380,7 @@ export const rejectHotel = async (req: Request, res: Response) => {
 
     await prisma.hotel.update({
       where: { hotel_id: parsedId },
-      data: { verified_status: false },
+      data: { verified_status: null },
     });
 
     await prisma.notification.create({
@@ -386,6 +405,7 @@ export const rejectHotel = async (req: Request, res: Response) => {
 
     return sendSuccess(res, 200, "Hotel rejected", {
       hotelId: parsedId,
+      verifiedStatus: null,
       reason: reason || "No reason provided",
     });
   } catch (error) {

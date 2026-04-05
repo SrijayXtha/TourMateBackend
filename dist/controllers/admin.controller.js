@@ -249,22 +249,39 @@ const rejectGuide = async (req, res) => {
     try {
         const { guideId } = req.params;
         const { reason } = req.body;
+        const parsedId = Number.parseInt(guideId, 10);
         const guide = await prisma_1.prisma.guide.findUnique({
-            where: { guide_id: parseInt(guideId) },
+            where: { guide_id: parsedId },
         });
         if (!guide) {
             return (0, response_1.sendError)(res, 404, "Guide not found");
         }
+        const updated = await prisma_1.prisma.guide.update({
+            where: { guide_id: parsedId },
+            data: { verified_status: null },
+        });
+        await prisma_1.prisma.notification.create({
+            data: {
+                user_id: parsedId,
+                title: "Guide verification update",
+                message: reason
+                    ? `Your guide verification was rejected: ${reason}`
+                    : "Your guide verification was rejected.",
+                type: "verification",
+                is_read: false,
+            },
+        });
         // Log admin action
         await prisma_1.prisma.admin_action.create({
             data: {
                 action_type: "guide_rejected",
-                target_user_id: parseInt(guideId),
+                target_user_id: parsedId,
                 action_description: `Guide ${guide.guide_id} rejected. Reason: ${reason || "N/A"}`,
             },
         });
         return (0, response_1.sendSuccess)(res, 200, "Guide rejected", {
-            guideId,
+            guideId: updated.guide_id,
+            verifiedStatus: updated.verified_status,
             reason: reason || "No reason provided",
         });
     }
@@ -338,7 +355,7 @@ const rejectHotel = async (req, res) => {
         }
         await prisma_1.prisma.hotel.update({
             where: { hotel_id: parsedId },
-            data: { verified_status: false },
+            data: { verified_status: null },
         });
         await prisma_1.prisma.notification.create({
             data: {
@@ -360,6 +377,7 @@ const rejectHotel = async (req, res) => {
         });
         return (0, response_1.sendSuccess)(res, 200, "Hotel rejected", {
             hotelId: parsedId,
+            verifiedStatus: null,
             reason: reason || "No reason provided",
         });
     }
