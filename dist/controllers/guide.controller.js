@@ -174,6 +174,7 @@ const getGuideBookings = async (req, res) => {
             count: bookings.length,
             bookings: bookings.map((b) => ({
                 id: b.booking_id,
+                touristId: b.tourist_id,
                 touristName: b.tourist?.users?.full_name || "Tourist",
                 touristPhone: b.tourist?.users?.phone,
                 startDate: b.start_date,
@@ -594,9 +595,51 @@ const getGuideMessages = async (req, res) => {
         if (!userId) {
             return (0, response_1.sendError)(res, 401, "Unauthorized");
         }
+        const bookingId = Number.parseInt(String(req.query.bookingId || ""), 10);
+        let allowedTouristIds = [];
+        if (Number.isInteger(bookingId) && bookingId > 0) {
+            const booking = await prisma_1.prisma.booking.findFirst({
+                where: {
+                    booking_id: bookingId,
+                    guide_id: userId,
+                    status: "confirmed",
+                },
+                select: { tourist_id: true },
+            });
+            if (!booking?.tourist_id) {
+                return (0, response_1.sendSuccess)(res, 200, "Messages retrieved", {
+                    count: 0,
+                    messages: [],
+                });
+            }
+            allowedTouristIds = [booking.tourist_id];
+        }
+        else {
+            const confirmedBookings = await prisma_1.prisma.booking.findMany({
+                where: {
+                    guide_id: userId,
+                    status: "confirmed",
+                    tourist_id: { not: null },
+                },
+                select: { tourist_id: true },
+            });
+            allowedTouristIds = Array.from(new Set(confirmedBookings
+                .map((item) => item.tourist_id)
+                .filter((value) => Number.isInteger(value))));
+        }
+        if (allowedTouristIds.length === 0) {
+            return (0, response_1.sendSuccess)(res, 200, "Messages retrieved", {
+                count: 0,
+                messages: [],
+            });
+        }
+        const allowedMessagePairs = allowedTouristIds.flatMap((touristId) => [
+            { sender_id: userId, receiver_id: touristId },
+            { sender_id: touristId, receiver_id: userId },
+        ]);
         const messages = await prisma_1.prisma.message.findMany({
             where: {
-                OR: [{ sender_id: userId }, { receiver_id: userId }],
+                OR: allowedMessagePairs,
             },
             include: {
                 users_message_sender: { select: { user_id: true, full_name: true, role: true } },
@@ -630,18 +673,49 @@ exports.getGuideMessages = getGuideMessages;
 const sendGuideMessage = async (req, res) => {
     try {
         const userId = req.user?.id;
-        const { receiverId, content } = req.body;
+        const { receiverId, bookingId, content } = req.body;
         if (!userId) {
             return (0, response_1.sendError)(res, 401, "Unauthorized");
-        }
-        if (!receiverId || !Number.isInteger(Number(receiverId))) {
-            return (0, response_1.sendError)(res, 400, "receiverId is required");
         }
         if (!content || !content.trim()) {
             return (0, response_1.sendError)(res, 400, "Message content is required");
         }
+        let resolvedReceiverId = null;
+        const parsedBookingId = Number.parseInt(String(bookingId ?? ""), 10);
+        if (Number.isInteger(parsedBookingId) && parsedBookingId > 0) {
+            const booking = await prisma_1.prisma.booking.findFirst({
+                where: {
+                    booking_id: parsedBookingId,
+                    guide_id: userId,
+                    status: "confirmed",
+                },
+                select: { tourist_id: true },
+            });
+            if (!booking?.tourist_id) {
+                return (0, response_1.sendError)(res, 403, "Chat is enabled only after booking is accepted");
+            }
+            resolvedReceiverId = booking.tourist_id;
+        }
+        if (!resolvedReceiverId) {
+            const parsedReceiverId = Number.parseInt(String(receiverId ?? ""), 10);
+            if (!Number.isInteger(parsedReceiverId) || parsedReceiverId <= 0) {
+                return (0, response_1.sendError)(res, 400, "bookingId or receiverId is required");
+            }
+            resolvedReceiverId = parsedReceiverId;
+        }
+        const hasConfirmedBooking = await prisma_1.prisma.booking.findFirst({
+            where: {
+                guide_id: userId,
+                tourist_id: resolvedReceiverId,
+                status: "confirmed",
+            },
+            select: { booking_id: true },
+        });
+        if (!hasConfirmedBooking) {
+            return (0, response_1.sendError)(res, 403, "Chat is enabled only after booking is accepted");
+        }
         const receiver = await prisma_1.prisma.users.findUnique({
-            where: { user_id: Number(receiverId) },
+            where: { user_id: resolvedReceiverId },
             select: { user_id: true },
         });
         if (!receiver) {
@@ -666,6 +740,8 @@ const sendGuideMessage = async (req, res) => {
         return (0, response_1.sendSuccess)(res, 201, "Message sent", {
             messageId: message.message_id,
             sentAt: message.sent_at,
+            receiverId: resolvedReceiverId,
+            bookingId: hasConfirmedBooking.booking_id,
         });
     }
     catch (error) {

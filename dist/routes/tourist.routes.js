@@ -23,6 +23,9 @@ router.get("/notifications", auth_middleware_1.authMiddleware, (0, auth_middlewa
 router.patch("/notifications/read-all", auth_middleware_1.authMiddleware, (0, auth_middleware_1.roleGuard)(["tourist"]), tourist_controller_1.markAllTouristNotificationsRead);
 router.patch("/notifications/:notificationId/read", auth_middleware_1.authMiddleware, (0, auth_middleware_1.roleGuard)(["tourist"]), tourist_controller_1.markTouristNotificationRead);
 router.delete("/notifications/:notificationId", auth_middleware_1.authMiddleware, (0, auth_middleware_1.roleGuard)(["tourist"]), tourist_controller_1.deleteTouristNotification);
+// Messaging
+router.get("/messages", auth_middleware_1.authMiddleware, (0, auth_middleware_1.roleGuard)(["tourist"]), tourist_controller_1.getTouristMessages);
+router.post("/messages", auth_middleware_1.authMiddleware, (0, auth_middleware_1.roleGuard)(["tourist"]), tourist_controller_1.sendTouristMessage);
 // Dashboard
 router.get("/dashboard", auth_middleware_1.authMiddleware, (0, auth_middleware_1.roleGuard)(["tourist"]), tourist_controller_1.getTouristDashboard);
 // Bookings

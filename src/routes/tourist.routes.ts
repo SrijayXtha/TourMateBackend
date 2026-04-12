@@ -21,6 +21,8 @@ import {
   markTouristNotificationRead,
   markAllTouristNotificationsRead,
   deleteTouristNotification,
+  getTouristMessages,
+  sendTouristMessage,
 } from "../controllers/tourist.controller";
 
 const router = Router();
@@ -49,6 +51,10 @@ router.get("/notifications", authMiddleware, roleGuard(["tourist"]), getTouristN
 router.patch("/notifications/read-all", authMiddleware, roleGuard(["tourist"]), markAllTouristNotificationsRead);
 router.patch("/notifications/:notificationId/read", authMiddleware, roleGuard(["tourist"]), markTouristNotificationRead);
 router.delete("/notifications/:notificationId", authMiddleware, roleGuard(["tourist"]), deleteTouristNotification);
+
+// Messaging
+router.get("/messages", authMiddleware, roleGuard(["tourist"]), getTouristMessages);
+router.post("/messages", authMiddleware, roleGuard(["tourist"]), sendTouristMessage);
 
 // Dashboard
 router.get("/dashboard", authMiddleware, roleGuard(["tourist"]), getTouristDashboard);

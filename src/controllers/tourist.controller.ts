@@ -1129,3 +1129,206 @@ export const deleteTouristNotification = async (req: Request, res: Response) => 
     return sendError(res, 500, "Failed to delete notification");
   }
 };
+
+/**
+ * GET /tourist/messages
+ * Get tourist messages with guides from confirmed bookings
+ */
+export const getTouristMessages = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return sendError(res, 401, "Unauthorized");
+    }
+
+    const parsedBookingId = parseOptionalId(req.query.bookingId);
+    if (Number.isNaN(parsedBookingId)) {
+      return sendError(res, 400, "bookingId must be a valid positive integer");
+    }
+
+    let allowedGuideIds: number[] = [];
+
+    if (parsedBookingId) {
+      const booking = await prisma.booking.findFirst({
+        where: {
+          booking_id: parsedBookingId,
+          tourist_id: userId,
+          status: "confirmed",
+          guide_id: { not: null },
+        },
+        select: { guide_id: true },
+      });
+
+      if (!booking?.guide_id) {
+        return sendSuccess(res, 200, "Messages retrieved", {
+          count: 0,
+          messages: [],
+        });
+      }
+
+      allowedGuideIds = [booking.guide_id];
+    } else {
+      const confirmedBookings = await prisma.booking.findMany({
+        where: {
+          tourist_id: userId,
+          status: "confirmed",
+          guide_id: { not: null },
+        },
+        select: { guide_id: true },
+      });
+
+      allowedGuideIds = Array.from(
+        new Set(
+          confirmedBookings
+            .map((item) => item.guide_id)
+            .filter((value): value is number => Number.isInteger(value))
+        )
+      );
+    }
+
+    if (allowedGuideIds.length === 0) {
+      return sendSuccess(res, 200, "Messages retrieved", {
+        count: 0,
+        messages: [],
+      });
+    }
+
+    const allowedMessagePairs = allowedGuideIds.flatMap((guideId) => [
+      { sender_id: userId, receiver_id: guideId },
+      { sender_id: guideId, receiver_id: userId },
+    ]);
+
+    const messages = await prisma.message.findMany({
+      where: {
+        OR: allowedMessagePairs,
+      },
+      include: {
+        users_message_sender: { select: { user_id: true, full_name: true, role: true } },
+        users_message_receiver: { select: { user_id: true, full_name: true, role: true } },
+      },
+      orderBy: { sent_at: "desc" },
+      take: 100,
+    });
+
+    return sendSuccess(res, 200, "Messages retrieved", {
+      count: messages.length,
+      messages: messages.map((message) => ({
+        id: message.message_id,
+        sender: message.users_message_sender,
+        receiver: message.users_message_receiver,
+        content: message.content,
+        isRead: message.is_read,
+        sentAt: message.sent_at,
+      })),
+    });
+  } catch (error) {
+    console.error("Error getting tourist messages:", error);
+    return sendError(res, 500, "Failed to get messages");
+  }
+};
+
+/**
+ * POST /tourist/messages
+ * Send message from tourist to a guide with confirmed booking
+ */
+export const sendTouristMessage = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    const { receiverId, bookingId, content } = req.body as {
+      receiverId?: number;
+      bookingId?: number;
+      content?: string;
+    };
+
+    if (!userId) {
+      return sendError(res, 401, "Unauthorized");
+    }
+
+    if (!content || !content.trim()) {
+      return sendError(res, 400, "Message content is required");
+    }
+
+    const parsedBookingId = parseOptionalId(bookingId);
+    if (Number.isNaN(parsedBookingId)) {
+      return sendError(res, 400, "bookingId must be a valid positive integer");
+    }
+
+    let resolvedReceiverId: number | null = null;
+
+    if (parsedBookingId) {
+      const booking = await prisma.booking.findFirst({
+        where: {
+          booking_id: parsedBookingId,
+          tourist_id: userId,
+          status: "confirmed",
+          guide_id: { not: null },
+        },
+        select: { guide_id: true },
+      });
+
+      if (!booking?.guide_id) {
+        return sendError(res, 403, "Chat is enabled only after booking is accepted");
+      }
+
+      resolvedReceiverId = booking.guide_id;
+    }
+
+    if (!resolvedReceiverId) {
+      const parsedReceiverId = parseOptionalId(receiverId);
+      if (!parsedReceiverId || Number.isNaN(parsedReceiverId)) {
+        return sendError(res, 400, "bookingId or receiverId is required");
+      }
+      resolvedReceiverId = parsedReceiverId;
+    }
+
+    const hasConfirmedBooking = await prisma.booking.findFirst({
+      where: {
+        tourist_id: userId,
+        guide_id: resolvedReceiverId,
+        status: "confirmed",
+      },
+      select: { booking_id: true },
+    });
+
+    if (!hasConfirmedBooking) {
+      return sendError(res, 403, "Chat is enabled only after booking is accepted");
+    }
+
+    const receiver = await prisma.users.findUnique({
+      where: { user_id: resolvedReceiverId },
+      select: { user_id: true },
+    });
+
+    if (!receiver) {
+      return sendError(res, 404, "Receiver not found");
+    }
+
+    const message = await prisma.message.create({
+      data: {
+        sender_id: userId,
+        receiver_id: receiver.user_id,
+        content: content.trim(),
+      },
+    });
+
+    await prisma.notification.create({
+      data: {
+        user_id: receiver.user_id,
+        title: "New message",
+        message: "You received a new message from your tourist.",
+        type: "message",
+        is_read: false,
+      },
+    });
+
+    return sendSuccess(res, 201, "Message sent", {
+      messageId: message.message_id,
+      sentAt: message.sent_at,
+      receiverId: resolvedReceiverId,
+      bookingId: hasConfirmedBooking.booking_id,
+    });
+  } catch (error) {
+    console.error("Error sending tourist message:", error);
+    return sendError(res, 500, "Failed to send message");
+  }
+};

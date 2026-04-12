@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteTouristNotification = exports.markAllTouristNotificationsRead = exports.markTouristNotificationRead = exports.getTouristNotifications = exports.updatePrivacySettings = exports.removePaymentMethod = exports.addPaymentMethod = exports.getPaymentMethods = exports.removeSavedPlace = exports.addSavedPlace = exports.getSavedPlaces = exports.updateTouristProfile = exports.reportIncident = exports.reportSOS = exports.createReview = exports.getTouristReviews = exports.createBooking = exports.getTouristBookings = exports.getTouristDashboard = exports.getTouristProfile = void 0;
+exports.sendTouristMessage = exports.getTouristMessages = exports.deleteTouristNotification = exports.markAllTouristNotificationsRead = exports.markTouristNotificationRead = exports.getTouristNotifications = exports.updatePrivacySettings = exports.removePaymentMethod = exports.addPaymentMethod = exports.getPaymentMethods = exports.removeSavedPlace = exports.addSavedPlace = exports.getSavedPlaces = exports.updateTouristProfile = exports.reportIncident = exports.reportSOS = exports.createReview = exports.getTouristReviews = exports.createBooking = exports.getTouristBookings = exports.getTouristDashboard = exports.getTouristProfile = void 0;
 const prisma_1 = require("../prisma");
 const response_1 = require("../utils/response");
 const parseOptionalId = (value) => {
@@ -956,3 +956,176 @@ const deleteTouristNotification = async (req, res) => {
     }
 };
 exports.deleteTouristNotification = deleteTouristNotification;
+/**
+ * GET /tourist/messages
+ * Get tourist messages with guides from confirmed bookings
+ */
+const getTouristMessages = async (req, res) => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) {
+            return (0, response_1.sendError)(res, 401, "Unauthorized");
+        }
+        const parsedBookingId = parseOptionalId(req.query.bookingId);
+        if (Number.isNaN(parsedBookingId)) {
+            return (0, response_1.sendError)(res, 400, "bookingId must be a valid positive integer");
+        }
+        let allowedGuideIds = [];
+        if (parsedBookingId) {
+            const booking = await prisma_1.prisma.booking.findFirst({
+                where: {
+                    booking_id: parsedBookingId,
+                    tourist_id: userId,
+                    status: "confirmed",
+                    guide_id: { not: null },
+                },
+                select: { guide_id: true },
+            });
+            if (!booking?.guide_id) {
+                return (0, response_1.sendSuccess)(res, 200, "Messages retrieved", {
+                    count: 0,
+                    messages: [],
+                });
+            }
+            allowedGuideIds = [booking.guide_id];
+        }
+        else {
+            const confirmedBookings = await prisma_1.prisma.booking.findMany({
+                where: {
+                    tourist_id: userId,
+                    status: "confirmed",
+                    guide_id: { not: null },
+                },
+                select: { guide_id: true },
+            });
+            allowedGuideIds = Array.from(new Set(confirmedBookings
+                .map((item) => item.guide_id)
+                .filter((value) => Number.isInteger(value))));
+        }
+        if (allowedGuideIds.length === 0) {
+            return (0, response_1.sendSuccess)(res, 200, "Messages retrieved", {
+                count: 0,
+                messages: [],
+            });
+        }
+        const allowedMessagePairs = allowedGuideIds.flatMap((guideId) => [
+            { sender_id: userId, receiver_id: guideId },
+            { sender_id: guideId, receiver_id: userId },
+        ]);
+        const messages = await prisma_1.prisma.message.findMany({
+            where: {
+                OR: allowedMessagePairs,
+            },
+            include: {
+                users_message_sender: { select: { user_id: true, full_name: true, role: true } },
+                users_message_receiver: { select: { user_id: true, full_name: true, role: true } },
+            },
+            orderBy: { sent_at: "desc" },
+            take: 100,
+        });
+        return (0, response_1.sendSuccess)(res, 200, "Messages retrieved", {
+            count: messages.length,
+            messages: messages.map((message) => ({
+                id: message.message_id,
+                sender: message.users_message_sender,
+                receiver: message.users_message_receiver,
+                content: message.content,
+                isRead: message.is_read,
+                sentAt: message.sent_at,
+            })),
+        });
+    }
+    catch (error) {
+        console.error("Error getting tourist messages:", error);
+        return (0, response_1.sendError)(res, 500, "Failed to get messages");
+    }
+};
+exports.getTouristMessages = getTouristMessages;
+/**
+ * POST /tourist/messages
+ * Send message from tourist to a guide with confirmed booking
+ */
+const sendTouristMessage = async (req, res) => {
+    try {
+        const userId = req.user?.id;
+        const { receiverId, bookingId, content } = req.body;
+        if (!userId) {
+            return (0, response_1.sendError)(res, 401, "Unauthorized");
+        }
+        if (!content || !content.trim()) {
+            return (0, response_1.sendError)(res, 400, "Message content is required");
+        }
+        const parsedBookingId = parseOptionalId(bookingId);
+        if (Number.isNaN(parsedBookingId)) {
+            return (0, response_1.sendError)(res, 400, "bookingId must be a valid positive integer");
+        }
+        let resolvedReceiverId = null;
+        if (parsedBookingId) {
+            const booking = await prisma_1.prisma.booking.findFirst({
+                where: {
+                    booking_id: parsedBookingId,
+                    tourist_id: userId,
+                    status: "confirmed",
+                    guide_id: { not: null },
+                },
+                select: { guide_id: true },
+            });
+            if (!booking?.guide_id) {
+                return (0, response_1.sendError)(res, 403, "Chat is enabled only after booking is accepted");
+            }
+            resolvedReceiverId = booking.guide_id;
+        }
+        if (!resolvedReceiverId) {
+            const parsedReceiverId = parseOptionalId(receiverId);
+            if (!parsedReceiverId || Number.isNaN(parsedReceiverId)) {
+                return (0, response_1.sendError)(res, 400, "bookingId or receiverId is required");
+            }
+            resolvedReceiverId = parsedReceiverId;
+        }
+        const hasConfirmedBooking = await prisma_1.prisma.booking.findFirst({
+            where: {
+                tourist_id: userId,
+                guide_id: resolvedReceiverId,
+                status: "confirmed",
+            },
+            select: { booking_id: true },
+        });
+        if (!hasConfirmedBooking) {
+            return (0, response_1.sendError)(res, 403, "Chat is enabled only after booking is accepted");
+        }
+        const receiver = await prisma_1.prisma.users.findUnique({
+            where: { user_id: resolvedReceiverId },
+            select: { user_id: true },
+        });
+        if (!receiver) {
+            return (0, response_1.sendError)(res, 404, "Receiver not found");
+        }
+        const message = await prisma_1.prisma.message.create({
+            data: {
+                sender_id: userId,
+                receiver_id: receiver.user_id,
+                content: content.trim(),
+            },
+        });
+        await prisma_1.prisma.notification.create({
+            data: {
+                user_id: receiver.user_id,
+                title: "New message",
+                message: "You received a new message from your tourist.",
+                type: "message",
+                is_read: false,
+            },
+        });
+        return (0, response_1.sendSuccess)(res, 201, "Message sent", {
+            messageId: message.message_id,
+            sentAt: message.sent_at,
+            receiverId: resolvedReceiverId,
+            bookingId: hasConfirmedBooking.booking_id,
+        });
+    }
+    catch (error) {
+        console.error("Error sending tourist message:", error);
+        return (0, response_1.sendError)(res, 500, "Failed to send message");
+    }
+};
+exports.sendTouristMessage = sendTouristMessage;
