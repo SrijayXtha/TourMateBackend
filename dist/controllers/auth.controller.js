@@ -1,4 +1,5 @@
 "use strict";
+// src/controllers/auth.controller.ts
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -8,67 +9,47 @@ const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const google_auth_library_1 = require("google-auth-library");
 const prisma_1 = require("../prisma");
-const response_1 = require("../utils/response");
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const googleClient = GOOGLE_CLIENT_ID ? new google_auth_library_1.OAuth2Client(GOOGLE_CLIENT_ID) : null;
-const requireJwtSecret = (res) => {
-    if (!JWT_SECRET) {
-        (0, response_1.sendError)(res, 500, "JWT_SECRET is not configured on server");
-        return null;
-    }
-    return JWT_SECRET;
-};
-/**
- * POST /auth/register
- * Register a new user (tourist, guide, or hotel only)
- */
 const register = async (req, res) => {
     try {
-        const jwtSecret = requireJwtSecret(res);
-        if (!jwtSecret) {
-            return;
-        }
-        const { fullName, email, password, phone, role, experienceYears, businessName } = req.body;
-        // Validate required fields
-        const validationError = (0, response_1.validateRequired)({ fullName, email, password, phone, role }, ["fullName", "email", "password", "phone", "role"]);
-        if (validationError) {
-            return (0, response_1.sendError)(res, 400, validationError);
-        }
-        // Reject admin role during registration
-        if (role.toLowerCase() === "admin") {
-            return (0, response_1.sendError)(res, 403, "Admin registration is not allowed via API");
+        const { full_name, email, password, phone, role } = req.body;
+        // Validation
+        if (!full_name || !email || !password || !role) {
+            return res.status(400).json({
+                message: "All required fields must be provided",
+                required: ["full_name", "email", "password", "role"]
+            });
         }
         // Validate role
-        if (!(0, response_1.validateRole)(role)) {
-            return (0, response_1.sendError)(res, 400, "Invalid role. Must be tourist, guide, or hotel");
+        const validRoles = ["tourist", "guide", "hotel", "admin"];
+        if (!validRoles.includes(role.toLowerCase())) {
+            return res.status(400).json({
+                message: "Invalid role",
+                validRoles: validRoles
+            });
         }
         // Validate email format
-        if (!(0, response_1.validateEmail)(email)) {
-            return (0, response_1.sendError)(res, 400, "Invalid email format");
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ message: "Invalid email format" });
         }
-        // Validate password strength
-        if (!(0, response_1.validatePassword)(password)) {
-            return (0, response_1.sendError)(res, 400, "Password must be at least 6 characters long");
+        // Validate password strength (minimum 6 characters)
+        if (password.length < 6) {
+            return res.status(400).json({ message: "Password must be at least 6 characters long" });
         }
-        // Check if user already exists by email
+        // Check if user already exists
         const existingUser = await prisma_1.prisma.users.findUnique({ where: { email } });
         if (existingUser) {
-            return (0, response_1.sendError)(res, 409, "Account with this email already exists");
-        }
-        // Check if phone number already exists (if provided)
-        if (phone) {
-            const existingPhone = await prisma_1.prisma.users.findFirst({ where: { phone } });
-            if (existingPhone) {
-                return (0, response_1.sendError)(res, 409, "Account with this phone number already exists");
-            }
+            return res.status(409).json({ message: "User with this email already exists" });
         }
         // Hash password
         const hashedPassword = await bcryptjs_1.default.hash(password, 10);
-        // Create user in DB
+        // Create user in DB with role-specific data
         const user = await prisma_1.prisma.users.create({
             data: {
-                full_name: fullName,
+                full_name,
                 email,
                 password: hashedPassword,
                 phone: phone || null,
@@ -87,15 +68,13 @@ const register = async (req, res) => {
                 });
             }
             else if (role.toLowerCase() === "guide") {
-                const expYears = parseInt(experienceYears || "0", 10) || 0;
                 await prisma_1.prisma.guide.create({
                     data: {
                         guide_id: user.user_id,
                         bio: null,
-                        experience_years: expYears,
+                        experience_years: 0,
                         license_number: null,
                         verified_status: false,
-                        is_available: true,
                     },
                 });
             }
@@ -103,11 +82,10 @@ const register = async (req, res) => {
                 await prisma_1.prisma.hotel.create({
                     data: {
                         hotel_id: user.user_id,
-                        hotel_name: businessName || fullName,
+                        hotel_name: full_name,
                         location: null,
                         description: null,
                         rating: null,
-                        verified_status: false,
                     },
                 });
             }
@@ -116,15 +94,16 @@ const register = async (req, res) => {
             console.error("Error creating role-specific data:", roleError);
             // If role-specific creation fails, delete the user to maintain consistency
             await prisma_1.prisma.users.delete({ where: { user_id: user.user_id } });
-            return (0, response_1.sendError)(res, 500, "Error creating user profile");
+            return res.status(500).json({ message: "Error creating user profile" });
         }
-        // Generate JWT token
-        const token = jsonwebtoken_1.default.sign({ id: user.user_id, role: user.role }, jwtSecret, { expiresIn: "24h" });
-        return (0, response_1.sendSuccess)(res, 201, "User registered successfully", {
+        // Generate JWT token for immediate login
+        const token = jsonwebtoken_1.default.sign({ userId: user.user_id, role: user.role }, JWT_SECRET, { expiresIn: "24h" });
+        res.status(201).json({
+            message: "User registered successfully",
             token,
             user: {
-                id: user.user_id,
-                fullName: user.full_name,
+                user_id: user.user_id,
+                full_name: user.full_name,
                 email: user.email,
                 role: user.role,
                 phone: user.phone,
@@ -133,79 +112,57 @@ const register = async (req, res) => {
     }
     catch (error) {
         console.error("Registration error:", error);
-        return (0, response_1.sendError)(res, 500, process.env.NODE_ENV === "development"
-            ? error.message
-            : "Server error during registration");
+        res.status(500).json({
+            message: "Server error during registration",
+            error: process.env.NODE_ENV === "development" ? error.message : undefined
+        });
     }
 };
 exports.register = register;
-/**
- * POST /auth/login
- * Login an existing user (any role)
- */
 const login = async (req, res) => {
     try {
-        const jwtSecret = requireJwtSecret(res);
-        if (!jwtSecret) {
-            return;
-        }
         const { email, password } = req.body;
-        // Validate required fields
-        const validationError = (0, response_1.validateRequired)({ email, password }, ["email", "password"]);
-        if (validationError) {
-            return (0, response_1.sendError)(res, 400, validationError);
+        if (!email || !password) {
+            return res.status(400).json({ message: "Email and password required" });
         }
-        // Find user by email
+        // Find user in DB
         const user = await prisma_1.prisma.users.findUnique({ where: { email } });
         if (!user) {
-            return (0, response_1.sendError)(res, 401, "Invalid credentials");
+            return res.status(401).json({ message: "Invalid credentials" });
         }
-        // Compare password with bcrypt
+        // Compare password
         const isMatch = await bcryptjs_1.default.compare(password, user.password);
         if (!isMatch) {
-            return (0, response_1.sendError)(res, 401, "Invalid credentials");
+            return res.status(401).json({ message: "Invalid credentials" });
         }
-        // Generate JWT token
-        const token = jsonwebtoken_1.default.sign({ id: user.user_id, role: user.role }, jwtSecret, { expiresIn: "24h" });
-        return (0, response_1.sendSuccess)(res, 200, "Login successful", {
+        // Generate JWT
+        const token = jsonwebtoken_1.default.sign({ userId: user.user_id, role: user.role }, JWT_SECRET, { expiresIn: "24h" });
+        res.json({
+            message: "Login successful",
             token,
             user: {
-                id: user.user_id,
-                fullName: user.full_name,
+                user_id: user.user_id,
+                full_name: user.full_name,
                 email: user.email,
                 role: user.role,
-                phone: user.phone,
             },
         });
     }
     catch (error) {
-        console.error("Login error:", error);
-        return (0, response_1.sendError)(res, 500, process.env.NODE_ENV === "development"
-            ? error.message
-            : "Server error during login");
+        console.error(error);
+        res.status(500).json({ message: "Server error" });
     }
 };
 exports.login = login;
-/**
- * POST /auth/google
- * Google OAuth login/registration
- */
 const googleLogin = async (req, res) => {
     try {
-        const jwtSecret = requireJwtSecret(res);
-        if (!jwtSecret) {
-            return;
-        }
         const { idToken, role } = req.body;
-        // Validate idToken
         if (!idToken) {
-            return (0, response_1.sendError)(res, 400, "Google idToken is required");
+            return res.status(400).json({ message: "Google idToken is required" });
         }
-        // Verify Google client is configured
         if (!GOOGLE_CLIENT_ID || !googleClient) {
-            return (0, response_1.sendError)(res, 500, "GOOGLE_CLIENT_ID is not configured on server");
+            return res.status(500).json({ message: "GOOGLE_CLIENT_ID is not configured on server" });
         }
-        // Verify Google token
         let payload;
         try {
             const loginTicket = await googleClient.verifyIdToken({
@@ -214,27 +171,22 @@ const googleLogin = async (req, res) => {
             });
             payload = loginTicket.getPayload();
         }
-        catch (tokenError) {
-            console.error("Google token verification failed:", tokenError);
-            return (0, response_1.sendError)(res, 401, "Invalid Google token");
+        catch {
+            return res.status(401).json({ message: "Invalid Google token" });
         }
-        // Validate email and verification status
         if (!payload?.email) {
-            return (0, response_1.sendError)(res, 401, "Google token does not include email");
+            return res.status(401).json({ message: "Google token does not include email" });
         }
         if (!payload.email_verified) {
-            return (0, response_1.sendError)(res, 401, "Google email is not verified");
+            return res.status(401).json({ message: "Google email is not verified" });
         }
-        // Default role to tourist if not provided
         const userRole = (role || "tourist").toLowerCase();
-        // Validate role (cannot be admin via Google)
-        if (userRole === "admin" || !(0, response_1.validateRole)(userRole)) {
-            return (0, response_1.sendError)(res, 400, "Invalid role. Must be tourist, guide, or hotel");
+        const validRoles = ["tourist", "guide", "hotel", "admin"];
+        if (!validRoles.includes(userRole)) {
+            return res.status(400).json({ message: "Invalid role" });
         }
-        // Find or create user
         let user = await prisma_1.prisma.users.findUnique({ where: { email: payload.email } });
         if (!user) {
-            // Generate a secure random password for Google users
             const generatedPassword = await bcryptjs_1.default.hash(`google_${Date.now()}_${Math.random()}`, 10);
             const fullName = payload.name || `${payload.given_name || ""} ${payload.family_name || ""}`.trim() || "Google User";
             try {
@@ -244,10 +196,8 @@ const googleLogin = async (req, res) => {
                         email: payload.email,
                         password: generatedPassword,
                         role: userRole,
-                        phone: null,
                     },
                 });
-                // Create role-specific entry
                 if (userRole === "tourist") {
                     await prisma_1.prisma.tourist.create({
                         data: {
@@ -262,10 +212,9 @@ const googleLogin = async (req, res) => {
                         data: {
                             guide_id: user.user_id,
                             bio: null,
-                            experience_years: 1,
+                            experience_years: 0,
                             license_number: null,
                             verified_status: false,
-                            is_available: true,
                         },
                     });
                 }
@@ -273,47 +222,46 @@ const googleLogin = async (req, res) => {
                     await prisma_1.prisma.hotel.create({
                         data: {
                             hotel_id: user.user_id,
-                            hotel_name: payload.name || "New Hotel",
+                            hotel_name: fullName,
                             location: null,
                             description: null,
                             rating: null,
-                            verified_status: false,
                         },
                     });
                 }
             }
             catch (createError) {
                 if (createError?.code === "P2002") {
-                    // User was created by another request, fetch it
                     user = await prisma_1.prisma.users.findUnique({ where: { email: payload.email } });
                 }
                 else {
-                    console.error("Error creating Google user or role profile:", createError);
                     throw createError;
                 }
             }
         }
         if (!user) {
-            return (0, response_1.sendError)(res, 500, "Unable to resolve Google user");
+            return res.status(500).json({ message: "Unable to resolve Google user" });
         }
-        // Generate JWT token
-        const token = jsonwebtoken_1.default.sign({ id: user.user_id, role: user.role }, jwtSecret, { expiresIn: "24h" });
-        return (0, response_1.sendSuccess)(res, 200, "Google login successful", {
+        const token = jsonwebtoken_1.default.sign({ userId: user.user_id, role: user.role }, JWT_SECRET, {
+            expiresIn: "24h",
+        });
+        res.json({
+            message: "Google login successful",
             token,
             user: {
-                id: user.user_id,
-                fullName: user.full_name,
+                user_id: user.user_id,
+                full_name: user.full_name,
                 email: user.email,
                 role: user.role,
-                phone: user.phone,
             },
         });
     }
     catch (error) {
         console.error("Google login error:", error);
-        return (0, response_1.sendError)(res, 500, process.env.NODE_ENV === "development"
-            ? error.message
-            : "Server error during Google login");
+        res.status(500).json({
+            message: "Server error during Google login",
+            error: process.env.NODE_ENV === "development" ? error.message : undefined,
+        });
     }
 };
 exports.googleLogin = googleLogin;
