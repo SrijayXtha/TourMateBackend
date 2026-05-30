@@ -103,6 +103,10 @@ export const getHotelProfile = async (req: Request, res: Response) => {
       hotel: {
         hotelName: hotel.hotel_name,
         location: hotel.location,
+        latitude: hotel.latitude,
+        longitude: hotel.longitude,
+        registrationNumber: hotel.registration_number,
+        licenseDocument: hotel.license_document,
         description: hotel.description,
         rating: avgRating,
         verifiedStatus: hotel.verified_status,

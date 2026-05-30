@@ -16,6 +16,8 @@ import {
   deleteGuideNotification,
   getGuideMessages,
   sendGuideMessage,
+  getGuideDestinationRequests,
+  createGuideDestinationRequest,
 } from "../controllers/guide.controller";
 
 const router = Router();
@@ -50,5 +52,9 @@ router.delete("/notifications/:notificationId", authMiddleware, roleGuard(["guid
 // Messaging
 router.get("/messages", authMiddleware, roleGuard(["guide"]), getGuideMessages);
 router.post("/messages", authMiddleware, roleGuard(["guide"]), sendGuideMessage);
+
+// Destination requests
+router.get("/destination-requests", authMiddleware, roleGuard(["guide"]), getGuideDestinationRequests);
+router.post("/destination-requests", authMiddleware, roleGuard(["guide"]), createGuideDestinationRequest);
 
 export default router;

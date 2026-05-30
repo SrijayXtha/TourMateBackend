@@ -1,0 +1,2006 @@
+{
+  "generatedAt": "2026-05-30T04:52:13.308Z",
+  "apiBase": "http://127.0.0.1:4000",
+  "seedTag": "demo-2026-05-30T04:52:13.308Z",
+  "accounts": {
+    "admin": {
+      "role": "admin",
+      "email": "admin.demo@tourmate.app",
+      "password": "DemoPass123!"
+    },
+    "tourists": [
+      {
+        "role": "tourist",
+        "email": "tourist.ava@tourmate.app",
+        "password": "DemoPass123!"
+      },
+      {
+        "role": "tourist",
+        "email": "tourist.liam@tourmate.app",
+        "password": "DemoPass123!"
+      }
+    ],
+    "guides": [
+      {
+        "role": "guide",
+        "email": "guide.maya@tourmate.app",
+        "password": "DemoPass123!"
+      },
+      {
+        "role": "guide",
+        "email": "guide.suraj@tourmate.app",
+        "password": "DemoPass123!"
+      },
+      {
+        "role": "guide",
+        "email": "guide.rina@tourmate.app",
+        "password": "DemoPass123!"
+      }
+    ],
+    "hotels": [
+      {
+        "role": "hotel",
+        "email": "hotel.himalayan@tourmate.app",
+        "password": "DemoPass123!"
+      },
+      {
+        "role": "hotel",
+        "email": "hotel.lakeside@tourmate.app",
+        "password": "DemoPass123!"
+      },
+      {
+        "role": "hotel",
+        "email": "hotel.valley@tourmate.app",
+        "password": "DemoPass123!"
+      }
+    ]
+  },
+  "summaries": {
+    "adminDashboard": {
+      "status": "success",
+      "message": "Admin dashboard retrieved",
+      "data": {
+        "overview": {
+          "totalUsers": 24,
+          "usersByRole": {
+            "tourists": 6,
+            "guides": 8,
+            "hotels": 8
+          }
+        },
+        "bookings": {
+          "total": 14,
+          "pending": 0,
+          "confirmed": 6,
+          "cancelled": 2
+        },
+        "verifications": {
+          "pendingGuideVerifications": 3,
+          "pendingHotelVerifications": 3,
+          "verifiedGuides": 4,
+          "verifiedHotels": 4
+        },
+        "incidents": {
+          "activeIncidents": 4,
+          "activeSOSReports": 4
+        },
+        "reviews": {
+          "total": 6
+        },
+        "growth": {
+          "userGrowthWeek": "+12%",
+          "bookingGrowthWeek": "+8%"
+        }
+      }
+    },
+    "adminUsers": {
+      "status": "success",
+      "message": "Users retrieved",
+      "data": {
+        "users": [
+          {
+            "user_id": 25,
+            "full_name": "Valley View Residency",
+            "email": "hotel.valley@tourmate.app",
+            "phone": "9800000023",
+            "role": "hotel",
+            "created_at": "2026-05-30T04:51:29.164Z"
+          },
+          {
+            "user_id": 24,
+            "full_name": "Lakeside Retreat",
+            "email": "hotel.lakeside@tourmate.app",
+            "phone": "9800000022",
+            "role": "hotel",
+            "created_at": "2026-05-30T04:51:29.028Z"
+          },
+          {
+            "user_id": 23,
+            "full_name": "Himalayan Haven Hotel",
+            "email": "hotel.himalayan@tourmate.app",
+            "phone": "9800000021",
+            "role": "hotel",
+            "created_at": "2026-05-30T04:51:28.889Z"
+          },
+          {
+            "user_id": 22,
+            "full_name": "Rina Magar",
+            "email": "guide.rina@tourmate.app",
+            "phone": "9800000013",
+            "role": "guide",
+            "created_at": "2026-05-30T04:51:28.752Z"
+          },
+          {
+            "user_id": 21,
+            "full_name": "Suraj Thapa",
+            "email": "guide.suraj@tourmate.app",
+            "phone": "9800000012",
+            "role": "guide",
+            "created_at": "2026-05-30T04:51:28.615Z"
+          },
+          {
+            "user_id": 20,
+            "full_name": "Maya Tamang",
+            "email": "guide.maya@tourmate.app",
+            "phone": "9800000011",
+            "role": "guide",
+            "created_at": "2026-05-30T04:51:28.480Z"
+          },
+          {
+            "user_id": 19,
+            "full_name": "Liam Gurung",
+            "email": "tourist.liam@tourmate.app",
+            "phone": "9800000002",
+            "role": "tourist",
+            "created_at": "2026-05-30T04:51:28.338Z"
+          },
+          {
+            "user_id": 18,
+            "full_name": "Ava Sherpa",
+            "email": "tourist.ava@tourmate.app",
+            "phone": "9800000001",
+            "role": "tourist",
+            "created_at": "2026-05-30T04:51:28.196Z"
+          },
+          {
+            "user_id": 17,
+            "full_name": "TourMate Demo Admin",
+            "email": "admin.demo@tourmate.app",
+            "phone": "9800000000",
+            "role": "admin",
+            "created_at": "2026-05-30T04:51:28.057Z"
+          },
+          {
+            "user_id": 16,
+            "full_name": "Validation hotel 1780113139824",
+            "email": "validation.hotel.1780113139824@tourmate.local",
+            "phone": "9813139824",
+            "role": "hotel",
+            "created_at": "2026-05-30T03:52:19.074Z"
+          }
+        ],
+        "pagination": {
+          "page": 1,
+          "limit": 10,
+          "total": 24,
+          "pages": 3
+        }
+      }
+    },
+    "adminGuides": {
+      "status": "success",
+      "message": "Guides retrieved",
+      "data": {
+        "guides": [
+          {
+            "guideId": 22,
+            "name": "Rina Magar",
+            "email": "guide.rina@tourmate.app",
+            "phone": "9800000013",
+            "verifiedStatus": null,
+            "experienceYears": 4,
+            "isAvailable": false,
+            "createdAt": "2026-05-30T04:51:28.752Z"
+          },
+          {
+            "guideId": 21,
+            "name": "Suraj Thapa",
+            "email": "guide.suraj@tourmate.app",
+            "phone": "9800000012",
+            "verifiedStatus": true,
+            "experienceYears": 8,
+            "isAvailable": true,
+            "createdAt": "2026-05-30T04:51:28.615Z"
+          },
+          {
+            "guideId": 20,
+            "name": "Maya Tamang",
+            "email": "guide.maya@tourmate.app",
+            "phone": "9800000011",
+            "verifiedStatus": true,
+            "experienceYears": 6,
+            "isAvailable": true,
+            "createdAt": "2026-05-30T04:51:28.480Z"
+          },
+          {
+            "guideId": 15,
+            "name": "Validation guide 1780113138824",
+            "email": "validation.guide.1780113138824@tourmate.local",
+            "phone": "9813138824",
+            "verifiedStatus": false,
+            "experienceYears": 3,
+            "isAvailable": true,
+            "createdAt": "2026-05-30T03:52:18.975Z"
+          },
+          {
+            "guideId": 13,
+            "name": "Validation guide 1780112254552",
+            "email": "validation.guide.1780112254552@tourmate.local",
+            "phone": "9812254552",
+            "verifiedStatus": false,
+            "experienceYears": 3,
+            "isAvailable": true,
+            "createdAt": "2026-05-30T03:37:34.761Z"
+          },
+          {
+            "guideId": 12,
+            "name": "Validation guide 1780112215777",
+            "email": "validation.guide.1780112215777@tourmate.local",
+            "phone": "9812215777",
+            "verifiedStatus": false,
+            "experienceYears": 0,
+            "isAvailable": true,
+            "createdAt": "2026-05-30T03:36:56.009Z"
+          },
+          {
+            "guideId": 7,
+            "name": "Runtime Guide 1775115195726",
+            "email": "runtime.guide.1775115195726@tourmate.local",
+            "phone": "0710195726",
+            "verifiedStatus": true,
+            "experienceYears": 4,
+            "isAvailable": true,
+            "createdAt": "2026-04-02T07:33:16.201Z"
+          },
+          {
+            "guideId": 4,
+            "name": "Runtime Guide 1775065048401",
+            "email": "runtime.guide.1775065048401@tourmate.local",
+            "phone": "0710048401",
+            "verifiedStatus": true,
+            "experienceYears": 4,
+            "isAvailable": true,
+            "createdAt": "2026-04-01T17:37:28.642Z"
+          }
+        ],
+        "pagination": {
+          "page": 1,
+          "limit": 10,
+          "total": 8,
+          "pages": 1
+        }
+      }
+    },
+    "adminHotels": {
+      "status": "success",
+      "message": "Hotels retrieved",
+      "data": {
+        "hotels": [
+          {
+            "hotelId": 25,
+            "name": "Valley View Residency",
+            "ownerName": "Valley View Residency",
+            "email": "hotel.valley@tourmate.app",
+            "phone": "9800000023",
+            "location": "Bhaktapur, Nepal",
+            "verifiedStatus": null,
+            "basePrice": "72",
+            "createdAt": "2026-05-30T04:51:29.164Z"
+          },
+          {
+            "hotelId": 24,
+            "name": "Lakeside Retreat",
+            "ownerName": "Lakeside Retreat",
+            "email": "hotel.lakeside@tourmate.app",
+            "phone": "9800000022",
+            "location": "Lakeside, Pokhara, Nepal",
+            "verifiedStatus": true,
+            "basePrice": "110",
+            "createdAt": "2026-05-30T04:51:29.028Z"
+          },
+          {
+            "hotelId": 23,
+            "name": "Himalayan Haven Hotel",
+            "ownerName": "Himalayan Haven Hotel",
+            "email": "hotel.himalayan@tourmate.app",
+            "phone": "9800000021",
+            "location": "Thamel, Kathmandu, Nepal",
+            "verifiedStatus": true,
+            "basePrice": "85",
+            "createdAt": "2026-05-30T04:51:28.889Z"
+          },
+          {
+            "hotelId": 16,
+            "name": "Validation Hotel 1780113138824",
+            "ownerName": "Validation hotel 1780113139824",
+            "email": "validation.hotel.1780113139824@tourmate.local",
+            "phone": "9813139824",
+            "location": "Kathmandu, Nepal",
+            "verifiedStatus": false,
+            "basePrice": null,
+            "createdAt": "2026-05-30T03:52:19.074Z"
+          },
+          {
+            "hotelId": 14,
+            "name": "Validation Hotel 1780112254552",
+            "ownerName": "Validation hotel 1780112255552",
+            "email": "validation.hotel.1780112255552@tourmate.local",
+            "phone": "9812255552",
+            "location": "Kathmandu, Nepal",
+            "verifiedStatus": false,
+            "basePrice": null,
+            "createdAt": "2026-05-30T03:37:34.876Z"
+          },
+          {
+            "hotelId": 10,
+            "name": "ram",
+            "ownerName": "ram",
+            "email": "srijay@yopmail.com",
+            "phone": "1234567890",
+            "location": null,
+            "verifiedStatus": false,
+            "basePrice": null,
+            "createdAt": "2026-05-29T18:43:57.911Z"
+          },
+          {
+            "hotelId": 8,
+            "name": "Runtime Hotel 1775115195726",
+            "ownerName": "Runtime Hotel Owner 1775115195726",
+            "email": "runtime.hotel.1775115195726@tourmate.local",
+            "phone": "0720195726",
+            "location": null,
+            "verifiedStatus": true,
+            "basePrice": null,
+            "createdAt": "2026-04-02T07:33:16.271Z"
+          },
+          {
+            "hotelId": 5,
+            "name": "Runtime Hotel 1775065048401",
+            "ownerName": "Runtime Hotel Owner 1775065048401",
+            "email": "runtime.hotel.1775065048401@tourmate.local",
+            "phone": "0720048401",
+            "location": null,
+            "verifiedStatus": true,
+            "basePrice": null,
+            "createdAt": "2026-04-01T17:37:28.711Z"
+          }
+        ],
+        "pagination": {
+          "page": 1,
+          "limit": 10,
+          "total": 8,
+          "pages": 1
+        }
+      }
+    },
+    "adminBookings": {
+      "status": "success",
+      "message": "Bookings retrieved",
+      "data": {
+        "bookings": [
+          {
+            "bookingId": 9,
+            "status": "cancelled",
+            "startDate": "2026-06-19T00:00:00.000Z",
+            "endDate": "2026-06-21T00:00:00.000Z",
+            "totalPrice": "260",
+            "tourist": {
+              "id": 18,
+              "name": "Ava Sherpa",
+              "email": "tourist.ava@tourmate.app"
+            },
+            "guide": null,
+            "hotel": {
+              "id": 23,
+              "name": "Himalayan Haven Hotel",
+              "email": "hotel.himalayan@tourmate.app"
+            }
+          },
+          {
+            "bookingId": 14,
+            "status": "cancelled",
+            "startDate": "2026-06-19T00:00:00.000Z",
+            "endDate": "2026-06-21T00:00:00.000Z",
+            "totalPrice": "260",
+            "tourist": {
+              "id": 18,
+              "name": "Ava Sherpa",
+              "email": "tourist.ava@tourmate.app"
+            },
+            "guide": null,
+            "hotel": {
+              "id": 23,
+              "name": "Himalayan Haven Hotel",
+              "email": "hotel.himalayan@tourmate.app"
+            }
+          },
+          {
+            "bookingId": 8,
+            "status": "rejected",
+            "startDate": "2026-06-13T00:00:00.000Z",
+            "endDate": "2026-06-15T00:00:00.000Z",
+            "totalPrice": "330",
+            "tourist": {
+              "id": 19,
+              "name": "Liam Gurung",
+              "email": "tourist.liam@tourmate.app"
+            },
+            "guide": null,
+            "hotel": {
+              "id": 24,
+              "name": "Lakeside Retreat",
+              "email": "hotel.lakeside@tourmate.app"
+            }
+          },
+          {
+            "bookingId": 13,
+            "status": "rejected",
+            "startDate": "2026-06-13T00:00:00.000Z",
+            "endDate": "2026-06-15T00:00:00.000Z",
+            "totalPrice": "330",
+            "tourist": {
+              "id": 19,
+              "name": "Liam Gurung",
+              "email": "tourist.liam@tourmate.app"
+            },
+            "guide": null,
+            "hotel": {
+              "id": 24,
+              "name": "Lakeside Retreat",
+              "email": "hotel.lakeside@tourmate.app"
+            }
+          },
+          {
+            "bookingId": 11,
+            "status": "rejected",
+            "startDate": "2026-06-09T00:00:00.000Z",
+            "endDate": "2026-06-10T00:00:00.000Z",
+            "totalPrice": "140",
+            "tourist": {
+              "id": 18,
+              "name": "Ava Sherpa",
+              "email": "tourist.ava@tourmate.app"
+            },
+            "guide": {
+              "id": 21,
+              "name": "Suraj Thapa",
+              "email": "guide.suraj@tourmate.app"
+            },
+            "hotel": null
+          },
+          {
+            "bookingId": 6,
+            "status": "rejected",
+            "startDate": "2026-06-09T00:00:00.000Z",
+            "endDate": "2026-06-10T00:00:00.000Z",
+            "totalPrice": "140",
+            "tourist": {
+              "id": 18,
+              "name": "Ava Sherpa",
+              "email": "tourist.ava@tourmate.app"
+            },
+            "guide": {
+              "id": 21,
+              "name": "Suraj Thapa",
+              "email": "guide.suraj@tourmate.app"
+            },
+            "hotel": null
+          },
+          {
+            "bookingId": 5,
+            "status": "confirmed",
+            "startDate": "2026-06-06T00:00:00.000Z",
+            "endDate": "2026-06-07T00:00:00.000Z",
+            "totalPrice": "120",
+            "tourist": {
+              "id": 18,
+              "name": "Ava Sherpa",
+              "email": "tourist.ava@tourmate.app"
+            },
+            "guide": {
+              "id": 20,
+              "name": "Maya Tamang",
+              "email": "guide.maya@tourmate.app"
+            },
+            "hotel": null
+          },
+          {
+            "bookingId": 10,
+            "status": "confirmed",
+            "startDate": "2026-06-06T00:00:00.000Z",
+            "endDate": "2026-06-07T00:00:00.000Z",
+            "totalPrice": "120",
+            "tourist": {
+              "id": 18,
+              "name": "Ava Sherpa",
+              "email": "tourist.ava@tourmate.app"
+            },
+            "guide": {
+              "id": 20,
+              "name": "Maya Tamang",
+              "email": "guide.maya@tourmate.app"
+            },
+            "hotel": null
+          },
+          {
+            "bookingId": 7,
+            "status": "completed",
+            "startDate": "2026-06-04T00:00:00.000Z",
+            "endDate": "2026-06-06T00:00:00.000Z",
+            "totalPrice": "240",
+            "tourist": {
+              "id": 19,
+              "name": "Liam Gurung",
+              "email": "tourist.liam@tourmate.app"
+            },
+            "guide": null,
+            "hotel": {
+              "id": 23,
+              "name": "Himalayan Haven Hotel",
+              "email": "hotel.himalayan@tourmate.app"
+            }
+          },
+          {
+            "bookingId": 12,
+            "status": "completed",
+            "startDate": "2026-06-04T00:00:00.000Z",
+            "endDate": "2026-06-06T00:00:00.000Z",
+            "totalPrice": "240",
+            "tourist": {
+              "id": 19,
+              "name": "Liam Gurung",
+              "email": "tourist.liam@tourmate.app"
+            },
+            "guide": null,
+            "hotel": {
+              "id": 23,
+              "name": "Himalayan Haven Hotel",
+              "email": "hotel.himalayan@tourmate.app"
+            }
+          },
+          {
+            "bookingId": 4,
+            "status": "confirmed",
+            "startDate": "2026-04-15T00:00:00.000Z",
+            "endDate": "2026-04-18T00:00:00.000Z",
+            "totalPrice": "500",
+            "tourist": {
+              "id": 6,
+              "name": "Runtime Tourist 1775115195726",
+              "email": "runtime.tourist.1775115195726@tourmate.local"
+            },
+            "guide": null,
+            "hotel": {
+              "id": 8,
+              "name": "Runtime Hotel 1775115195726",
+              "email": "runtime.hotel.1775115195726@tourmate.local"
+            }
+          },
+          {
+            "bookingId": 2,
+            "status": "confirmed",
+            "startDate": "2026-04-15T00:00:00.000Z",
+            "endDate": "2026-04-18T00:00:00.000Z",
+            "totalPrice": "500",
+            "tourist": {
+              "id": 3,
+              "name": "Runtime Tourist 1775065048401",
+              "email": "runtime.tourist.1775065048401@tourmate.local"
+            },
+            "guide": null,
+            "hotel": {
+              "id": 5,
+              "name": "Runtime Hotel 1775065048401",
+              "email": "runtime.hotel.1775065048401@tourmate.local"
+            }
+          },
+          {
+            "bookingId": 3,
+            "status": "confirmed",
+            "startDate": "2026-04-10T00:00:00.000Z",
+            "endDate": "2026-04-12T00:00:00.000Z",
+            "totalPrice": "300",
+            "tourist": {
+              "id": 6,
+              "name": "Runtime Tourist 1775115195726",
+              "email": "runtime.tourist.1775115195726@tourmate.local"
+            },
+            "guide": {
+              "id": 7,
+              "name": "Runtime Guide 1775115195726",
+              "email": "runtime.guide.1775115195726@tourmate.local"
+            },
+            "hotel": null
+          },
+          {
+            "bookingId": 1,
+            "status": "confirmed",
+            "startDate": "2026-04-10T00:00:00.000Z",
+            "endDate": "2026-04-12T00:00:00.000Z",
+            "totalPrice": "300",
+            "tourist": {
+              "id": 3,
+              "name": "Runtime Tourist 1775065048401",
+              "email": "runtime.tourist.1775065048401@tourmate.local"
+            },
+            "guide": {
+              "id": 4,
+              "name": "Runtime Guide 1775065048401",
+              "email": "runtime.guide.1775065048401@tourmate.local"
+            },
+            "hotel": null
+          }
+        ],
+        "pagination": {
+          "page": 1,
+          "limit": 20,
+          "total": 14,
+          "pages": 1
+        }
+      }
+    },
+    "adminIncidents": {
+      "status": "success",
+      "message": "Incidents retrieved",
+      "data": {
+        "incidents": {
+          "count": 4,
+          "data": [
+            {
+              "id": 4,
+              "type": "Lost Item",
+              "touristName": "Liam Gurung",
+              "details": "Guest reported a misplaced bag near the lobby. demo-2026-05-30T04:52:13.308Z",
+              "location": "Himalayan Haven lobby",
+              "createdAt": "2026-05-30T04:52:14.311Z"
+            },
+            {
+              "id": 3,
+              "type": "Lost Item",
+              "touristName": "Liam Gurung",
+              "details": "Guest reported a misplaced bag near the lobby. demo-2026-05-30T04:51:27.892Z",
+              "location": "Himalayan Haven lobby",
+              "createdAt": "2026-05-30T04:51:29.507Z"
+            },
+            {
+              "id": 2,
+              "type": "Other",
+              "touristName": "Runtime Tourist 1775115195726",
+              "details": "Runtime incident check",
+              "location": "Runtime Point",
+              "createdAt": "2026-04-02T07:33:16.592Z"
+            },
+            {
+              "id": 1,
+              "type": "Other",
+              "touristName": "Runtime Tourist 1775065048401",
+              "details": "Runtime incident check",
+              "location": "Runtime Point",
+              "createdAt": "2026-04-01T17:37:29.034Z"
+            }
+          ]
+        },
+        "sosReports": {
+          "count": 4,
+          "data": [
+            {
+              "id": 4,
+              "touristName": "Ava Sherpa",
+              "location": "Thamel, Kathmandu",
+              "status": "active",
+              "description": "Demo SOS check for emergency workflow. demo-2026-05-30T04:52:13.308Z",
+              "timestamp": "2026-05-30T04:52:14.302Z"
+            },
+            {
+              "id": 3,
+              "touristName": "Ava Sherpa",
+              "location": "Thamel, Kathmandu",
+              "status": "active",
+              "description": "Demo SOS check for emergency workflow. demo-2026-05-30T04:51:27.892Z",
+              "timestamp": "2026-05-30T04:51:29.494Z"
+            },
+            {
+              "id": 2,
+              "touristName": "Runtime Tourist 1775115195726",
+              "location": "Runtime Point",
+              "status": "active",
+              "description": "Smoke check SOS",
+              "timestamp": "2026-04-02T07:33:16.579Z"
+            },
+            {
+              "id": 1,
+              "touristName": "Runtime Tourist 1775065048401",
+              "location": "Runtime Point",
+              "status": "active",
+              "description": "Smoke check SOS",
+              "timestamp": "2026-04-01T17:37:29.021Z"
+            }
+          ]
+        }
+      }
+    },
+    "adminActivities": {
+      "status": "success",
+      "message": "Activity logs retrieved",
+      "data": {
+        "count": 20,
+        "logs": [
+          {
+            "id": 20,
+            "type": "incident_resolved",
+            "description": "Incident 4 resolved. Resolution: Handled by front desk and admin follow-up. demo-2026-05-30T04:52:13.308Z",
+            "adminName": "System",
+            "targetName": "Liam Gurung",
+            "timestamp": "2026-05-30T04:52:14.322Z"
+          },
+          {
+            "id": 19,
+            "type": "hotel_rejected",
+            "description": "Hotel 25 rejected. Reason: Demo rejected hotel profile for moderation workflow.",
+            "adminName": "System",
+            "targetName": "Valley View Residency",
+            "timestamp": "2026-05-30T04:52:14.099Z"
+          },
+          {
+            "id": 18,
+            "type": "hotel_verified",
+            "description": "Hotel 24 verified",
+            "adminName": "System",
+            "targetName": "Lakeside Retreat",
+            "timestamp": "2026-05-30T04:52:14.093Z"
+          },
+          {
+            "id": 17,
+            "type": "hotel_verified",
+            "description": "Hotel 23 verified",
+            "adminName": "System",
+            "targetName": "Himalayan Haven Hotel",
+            "timestamp": "2026-05-30T04:52:14.086Z"
+          },
+          {
+            "id": 16,
+            "type": "guide_rejected",
+            "description": "Guide 22 rejected. Reason: Demo rejected guide profile for moderation workflow.",
+            "adminName": "System",
+            "targetName": "Rina Magar",
+            "timestamp": "2026-05-30T04:52:14.078Z"
+          },
+          {
+            "id": 15,
+            "type": "guide_verified",
+            "description": "Guide 21 verified",
+            "adminName": "System",
+            "targetName": "Suraj Thapa",
+            "timestamp": "2026-05-30T04:52:14.064Z"
+          },
+          {
+            "id": 14,
+            "type": "guide_verified",
+            "description": "Guide 20 verified",
+            "adminName": "System",
+            "targetName": "Maya Tamang",
+            "timestamp": "2026-05-30T04:52:14.057Z"
+          },
+          {
+            "id": 13,
+            "type": "incident_resolved",
+            "description": "Incident 3 resolved. Resolution: Handled by front desk and admin follow-up. demo-2026-05-30T04:51:27.892Z",
+            "adminName": "System",
+            "targetName": "Liam Gurung",
+            "timestamp": "2026-05-30T04:51:29.518Z"
+          },
+          {
+            "id": 12,
+            "type": "hotel_rejected",
+            "description": "Hotel 25 rejected. Reason: Demo rejected hotel profile for moderation workflow.",
+            "adminName": "System",
+            "targetName": "Valley View Residency",
+            "timestamp": "2026-05-30T04:51:29.291Z"
+          },
+          {
+            "id": 11,
+            "type": "hotel_verified",
+            "description": "Hotel 24 verified",
+            "adminName": "System",
+            "targetName": "Lakeside Retreat",
+            "timestamp": "2026-05-30T04:51:29.284Z"
+          },
+          {
+            "id": 10,
+            "type": "hotel_verified",
+            "description": "Hotel 23 verified",
+            "adminName": "System",
+            "targetName": "Himalayan Haven Hotel",
+            "timestamp": "2026-05-30T04:51:29.277Z"
+          },
+          {
+            "id": 9,
+            "type": "guide_rejected",
+            "description": "Guide 22 rejected. Reason: Demo rejected guide profile for moderation workflow.",
+            "adminName": "System",
+            "targetName": "Rina Magar",
+            "timestamp": "2026-05-30T04:51:29.269Z"
+          },
+          {
+            "id": 8,
+            "type": "guide_verified",
+            "description": "Guide 21 verified",
+            "adminName": "System",
+            "targetName": "Suraj Thapa",
+            "timestamp": "2026-05-30T04:51:29.259Z"
+          },
+          {
+            "id": 7,
+            "type": "guide_verified",
+            "description": "Guide 20 verified",
+            "adminName": "System",
+            "targetName": "Maya Tamang",
+            "timestamp": "2026-05-30T04:51:29.250Z"
+          },
+          {
+            "id": 6,
+            "type": "incident_resolved",
+            "description": "Incident 2 resolved. Resolution: Runtime resolved",
+            "adminName": "System",
+            "targetName": "Runtime Tourist 1775115195726",
+            "timestamp": "2026-04-02T07:33:16.630Z"
+          },
+          {
+            "id": 5,
+            "type": "hotel_verified",
+            "description": "Hotel 8 verified",
+            "adminName": "System",
+            "targetName": "Runtime Hotel Owner 1775115195726",
+            "timestamp": "2026-04-02T07:33:16.377Z"
+          },
+          {
+            "id": 4,
+            "type": "guide_verified",
+            "description": "Guide 7 verified",
+            "adminName": "System",
+            "targetName": "Runtime Guide 1775115195726",
+            "timestamp": "2026-04-02T07:33:16.358Z"
+          },
+          {
+            "id": 3,
+            "type": "incident_resolved",
+            "description": "Incident 1 resolved. Resolution: Runtime resolved",
+            "adminName": "System",
+            "targetName": "Runtime Tourist 1775065048401",
+            "timestamp": "2026-04-01T17:37:29.080Z"
+          },
+          {
+            "id": 2,
+            "type": "hotel_verified",
+            "description": "Hotel 5 verified",
+            "adminName": "System",
+            "targetName": "Runtime Hotel Owner 1775065048401",
+            "timestamp": "2026-04-01T17:37:28.814Z"
+          },
+          {
+            "id": 1,
+            "type": "guide_verified",
+            "description": "Guide 4 verified",
+            "adminName": "System",
+            "targetName": "Runtime Guide 1775065048401",
+            "timestamp": "2026-04-01T17:37:28.795Z"
+          }
+        ]
+      }
+    },
+    "touristADashboard": {
+      "status": "success",
+      "message": "Dashboard data retrieved",
+      "data": {
+        "user": {
+          "full_name": "Ava Sherpa",
+          "email": "tourist.ava@tourmate.app"
+        },
+        "stats": {
+          "activeTrips": 2,
+          "totalBookings": 6,
+          "totalReviews": 4,
+          "savedPlaces": 4
+        },
+        "activeBookings": [
+          {
+            "id": 5,
+            "startDate": "2026-06-06T00:00:00.000Z",
+            "endDate": "2026-06-07T00:00:00.000Z",
+            "status": "confirmed",
+            "totalPrice": "120",
+            "guideName": "Maya Tamang",
+            "hotelName": "Hotel"
+          },
+          {
+            "id": 10,
+            "startDate": "2026-06-06T00:00:00.000Z",
+            "endDate": "2026-06-07T00:00:00.000Z",
+            "status": "confirmed",
+            "totalPrice": "120",
+            "guideName": "Maya Tamang",
+            "hotelName": "Hotel"
+          }
+        ]
+      }
+    },
+    "touristABookings": {
+      "status": "success",
+      "message": "Bookings retrieved",
+      "data": {
+        "count": 6,
+        "bookings": [
+          {
+            "id": 9,
+            "type": "hotel",
+            "startDate": "2026-06-19T00:00:00.000Z",
+            "endDate": "2026-06-21T00:00:00.000Z",
+            "status": "cancelled",
+            "totalPrice": "260",
+            "guide": null,
+            "hotel": {
+              "name": "Himalayan Haven Hotel",
+              "id": 23,
+              "location": "Thamel, Kathmandu, Nepal",
+              "rating": null
+            }
+          },
+          {
+            "id": 14,
+            "type": "hotel",
+            "startDate": "2026-06-19T00:00:00.000Z",
+            "endDate": "2026-06-21T00:00:00.000Z",
+            "status": "cancelled",
+            "totalPrice": "260",
+            "guide": null,
+            "hotel": {
+              "name": "Himalayan Haven Hotel",
+              "id": 23,
+              "location": "Thamel, Kathmandu, Nepal",
+              "rating": null
+            }
+          },
+          {
+            "id": 6,
+            "type": "guide",
+            "startDate": "2026-06-09T00:00:00.000Z",
+            "endDate": "2026-06-10T00:00:00.000Z",
+            "status": "rejected",
+            "totalPrice": "140",
+            "guide": {
+              "name": "Suraj Thapa",
+              "id": 21
+            },
+            "hotel": null
+          },
+          {
+            "id": 11,
+            "type": "guide",
+            "startDate": "2026-06-09T00:00:00.000Z",
+            "endDate": "2026-06-10T00:00:00.000Z",
+            "status": "rejected",
+            "totalPrice": "140",
+            "guide": {
+              "name": "Suraj Thapa",
+              "id": 21
+            },
+            "hotel": null
+          },
+          {
+            "id": 5,
+            "type": "guide",
+            "startDate": "2026-06-06T00:00:00.000Z",
+            "endDate": "2026-06-07T00:00:00.000Z",
+            "status": "confirmed",
+            "totalPrice": "120",
+            "guide": {
+              "name": "Maya Tamang",
+              "id": 20
+            },
+            "hotel": null
+          },
+          {
+            "id": 10,
+            "type": "guide",
+            "startDate": "2026-06-06T00:00:00.000Z",
+            "endDate": "2026-06-07T00:00:00.000Z",
+            "status": "confirmed",
+            "totalPrice": "120",
+            "guide": {
+              "name": "Maya Tamang",
+              "id": 20
+            },
+            "hotel": null
+          }
+        ]
+      }
+    },
+    "touristAReviews": {
+      "status": "success",
+      "message": "Reviews retrieved",
+      "data": {
+        "count": 4,
+        "reviews": [
+          {
+            "review_id": 6,
+            "tourist_id": 18,
+            "guide_id": null,
+            "hotel_id": 24,
+            "rating": 5,
+            "comment": "Saved this for a future lakeside weekend trip. demo-2026-05-30T04:52:13.308Z",
+            "created_at": "2026-05-30T04:52:14.282Z"
+          },
+          {
+            "review_id": 4,
+            "tourist_id": 18,
+            "guide_id": 20,
+            "hotel_id": null,
+            "rating": 5,
+            "comment": "Fantastic cultural storytelling and pacing. demo-2026-05-30T04:52:13.308Z",
+            "created_at": "2026-05-30T04:52:14.274Z"
+          },
+          {
+            "review_id": 3,
+            "tourist_id": 18,
+            "guide_id": null,
+            "hotel_id": 24,
+            "rating": 5,
+            "comment": "Saved this for a future lakeside weekend trip. demo-2026-05-30T04:51:27.892Z",
+            "created_at": "2026-05-30T04:51:29.472Z"
+          },
+          {
+            "review_id": 1,
+            "tourist_id": 18,
+            "guide_id": 20,
+            "hotel_id": null,
+            "rating": 5,
+            "comment": "Fantastic cultural storytelling and pacing. demo-2026-05-30T04:51:27.892Z",
+            "created_at": "2026-05-30T04:51:29.463Z"
+          }
+        ]
+      }
+    },
+    "touristAMessages": {
+      "status": "success",
+      "message": "Messages retrieved",
+      "data": {
+        "count": 4,
+        "messages": [
+          {
+            "id": 6,
+            "sender": {
+              "user_id": 20,
+              "full_name": "Maya Tamang",
+              "role": "guide"
+            },
+            "receiver": {
+              "user_id": 18,
+              "full_name": "Ava Sherpa",
+              "role": "tourist"
+            },
+            "content": "Looking forward to it too. I will share the meetup point soon. demo-2026-05-30T04:52:13.308Z",
+            "isRead": false,
+            "sentAt": "2026-05-30T04:52:14.297Z"
+          },
+          {
+            "id": 5,
+            "sender": {
+              "user_id": 18,
+              "full_name": "Ava Sherpa",
+              "role": "tourist"
+            },
+            "receiver": {
+              "user_id": 20,
+              "full_name": "Maya Tamang",
+              "role": "guide"
+            },
+            "content": "Hi Maya, excited for our tour. demo-2026-05-30T04:52:13.308Z",
+            "isRead": false,
+            "sentAt": "2026-05-30T04:52:14.289Z"
+          },
+          {
+            "id": 4,
+            "sender": {
+              "user_id": 20,
+              "full_name": "Maya Tamang",
+              "role": "guide"
+            },
+            "receiver": {
+              "user_id": 18,
+              "full_name": "Ava Sherpa",
+              "role": "tourist"
+            },
+            "content": "Looking forward to it too. I will share the meetup point soon. demo-2026-05-30T04:51:27.892Z",
+            "isRead": false,
+            "sentAt": "2026-05-30T04:51:29.489Z"
+          },
+          {
+            "id": 3,
+            "sender": {
+              "user_id": 18,
+              "full_name": "Ava Sherpa",
+              "role": "tourist"
+            },
+            "receiver": {
+              "user_id": 20,
+              "full_name": "Maya Tamang",
+              "role": "guide"
+            },
+            "content": "Hi Maya, excited for our tour. demo-2026-05-30T04:51:27.892Z",
+            "isRead": false,
+            "sentAt": "2026-05-30T04:51:29.478Z"
+          }
+        ]
+      }
+    },
+    "touristASavedPlaces": {
+      "status": "success",
+      "message": "Saved places retrieved",
+      "data": {
+        "count": 4,
+        "places": [
+          {
+            "id": "1780116734148_gwkkw8",
+            "name": "Boudhanath Stupa",
+            "location": "Kathmandu, Nepal",
+            "image": "https://images.unsplash.com/photo-1580294647332-8a399cd9ed45?w=800&q=80",
+            "notes": "Quiet rooftop cafes nearby with panoramic views.",
+            "createdAt": "2026-05-30T04:52:14.148Z"
+          },
+          {
+            "id": "1780116734144_shc1fk",
+            "name": "Patan Durbar Square",
+            "location": "Lalitpur, Nepal",
+            "image": "https://images.unsplash.com/photo-1605640840605-14ac1855827b?w=800&q=80",
+            "notes": "Best visited in the late afternoon for warm light.",
+            "createdAt": "2026-05-30T04:52:14.144Z"
+          },
+          {
+            "id": "1780116689344_lnlkjt",
+            "name": "Boudhanath Stupa",
+            "location": "Kathmandu, Nepal",
+            "image": "https://images.unsplash.com/photo-1580294647332-8a399cd9ed45?w=800&q=80",
+            "notes": "Quiet rooftop cafes nearby with panoramic views.",
+            "createdAt": "2026-05-30T04:51:29.344Z"
+          },
+          {
+            "id": "1780116689340_fh2hi7",
+            "name": "Patan Durbar Square",
+            "location": "Lalitpur, Nepal",
+            "image": "https://images.unsplash.com/photo-1605640840605-14ac1855827b?w=800&q=80",
+            "notes": "Best visited in the late afternoon for warm light.",
+            "createdAt": "2026-05-30T04:51:29.341Z"
+          }
+        ]
+      }
+    },
+    "touristAPaymentMethods": {
+      "status": "success",
+      "message": "Payment methods retrieved",
+      "data": {
+        "count": 4,
+        "methods": [
+          {
+            "id": "1780116734162_if42w0",
+            "label": "Mastercard Backup",
+            "brand": "Mastercard",
+            "last4": "5100",
+            "expiryMonth": "01",
+            "expiryYear": "2029",
+            "isDefault": false,
+            "createdAt": "2026-05-30T04:52:14.162Z"
+          },
+          {
+            "id": "1780116734157_km6091",
+            "label": "Visa Personal",
+            "brand": "Visa",
+            "last4": "4242",
+            "expiryMonth": "09",
+            "expiryYear": "2028",
+            "isDefault": true,
+            "createdAt": "2026-05-30T04:52:14.157Z"
+          },
+          {
+            "id": "1780116689357_i2hr33",
+            "label": "Mastercard Backup",
+            "brand": "Mastercard",
+            "last4": "5100",
+            "expiryMonth": "01",
+            "expiryYear": "2029",
+            "isDefault": false,
+            "createdAt": "2026-05-30T04:51:29.357Z"
+          },
+          {
+            "id": "1780116689353_i7x7ex",
+            "label": "Visa Personal",
+            "brand": "Visa",
+            "last4": "4242",
+            "expiryMonth": "09",
+            "expiryYear": "2028",
+            "isDefault": false,
+            "createdAt": "2026-05-30T04:51:29.353Z"
+          }
+        ]
+      }
+    },
+    "touristANotifications": {
+      "status": "success",
+      "message": "Notifications retrieved",
+      "data": {
+        "notifications": [
+          {
+            "notification_id": 83,
+            "user_id": 18,
+            "title": "SOS alert sent",
+            "message": "Your SOS alert was successfully sent to emergency responders.",
+            "type": "sos",
+            "is_read": true,
+            "created_at": "2026-05-30T04:52:14.307Z"
+          },
+          {
+            "notification_id": 80,
+            "user_id": 18,
+            "title": "New message",
+            "message": "You received a new message from your guide.",
+            "type": "message",
+            "is_read": false,
+            "created_at": "2026-05-30T04:52:14.299Z"
+          },
+          {
+            "notification_id": 78,
+            "user_id": 18,
+            "title": "Cancellation request update",
+            "message": "Your booking cancellation request was approved.",
+            "type": "booking",
+            "is_read": false,
+            "created_at": "2026-05-30T04:52:14.270Z"
+          },
+          {
+            "notification_id": 77,
+            "user_id": 18,
+            "title": "Hotel booking status updated",
+            "message": "Your booking status is now: pending_cancellation.",
+            "type": "booking",
+            "is_read": false,
+            "created_at": "2026-05-30T04:52:14.264Z"
+          },
+          {
+            "notification_id": 76,
+            "user_id": 18,
+            "title": "Hotel booking confirmed",
+            "message": "Your hotel booking request was accepted.",
+            "type": "booking",
+            "is_read": false,
+            "created_at": "2026-05-30T04:52:14.259Z"
+          },
+          {
+            "notification_id": 75,
+            "user_id": 18,
+            "title": "Booking submitted",
+            "message": "Your booking request has been submitted and is awaiting confirmation.",
+            "type": "booking",
+            "is_read": false,
+            "created_at": "2026-05-30T04:52:14.253Z"
+          },
+          {
+            "notification_id": 65,
+            "user_id": 18,
+            "title": "Booking update",
+            "message": "Your guide booking request was rejected: Guide unavailable for the requested dates in demo flow.",
+            "type": "booking",
+            "is_read": false,
+            "created_at": "2026-05-30T04:52:14.207Z"
+          },
+          {
+            "notification_id": 64,
+            "user_id": 18,
+            "title": "Booking submitted",
+            "message": "Your booking request has been submitted and is awaiting confirmation.",
+            "type": "booking",
+            "is_read": false,
+            "created_at": "2026-05-30T04:52:14.201Z"
+          },
+          {
+            "notification_id": 62,
+            "user_id": 18,
+            "title": "Booking confirmed",
+            "message": "Your guide booking request has been accepted.",
+            "type": "booking",
+            "is_read": false,
+            "created_at": "2026-05-30T04:52:14.193Z"
+          },
+          {
+            "notification_id": 61,
+            "user_id": 18,
+            "title": "Booking submitted",
+            "message": "Your booking request has been submitted and is awaiting confirmation.",
+            "type": "booking",
+            "is_read": false,
+            "created_at": "2026-05-30T04:52:14.185Z"
+          },
+          {
+            "notification_id": 52,
+            "user_id": 18,
+            "title": "SOS alert sent",
+            "message": "Your SOS alert was successfully sent to emergency responders.",
+            "type": "sos",
+            "is_read": false,
+            "created_at": "2026-05-30T04:51:29.503Z"
+          },
+          {
+            "notification_id": 49,
+            "user_id": 18,
+            "title": "New message",
+            "message": "You received a new message from your guide.",
+            "type": "message",
+            "is_read": false,
+            "created_at": "2026-05-30T04:51:29.491Z"
+          },
+          {
+            "notification_id": 47,
+            "user_id": 18,
+            "title": "Cancellation request update",
+            "message": "Your booking cancellation request was approved.",
+            "type": "booking",
+            "is_read": false,
+            "created_at": "2026-05-30T04:51:29.460Z"
+          },
+          {
+            "notification_id": 46,
+            "user_id": 18,
+            "title": "Hotel booking status updated",
+            "message": "Your booking status is now: pending_cancellation.",
+            "type": "booking",
+            "is_read": false,
+            "created_at": "2026-05-30T04:51:29.454Z"
+          },
+          {
+            "notification_id": 45,
+            "user_id": 18,
+            "title": "Hotel booking confirmed",
+            "message": "Your hotel booking request was accepted.",
+            "type": "booking",
+            "is_read": false,
+            "created_at": "2026-05-30T04:51:29.449Z"
+          },
+          {
+            "notification_id": 44,
+            "user_id": 18,
+            "title": "Booking submitted",
+            "message": "Your booking request has been submitted and is awaiting confirmation.",
+            "type": "booking",
+            "is_read": false,
+            "created_at": "2026-05-30T04:51:29.443Z"
+          },
+          {
+            "notification_id": 34,
+            "user_id": 18,
+            "title": "Booking update",
+            "message": "Your guide booking request was rejected: Guide unavailable for the requested dates in demo flow.",
+            "type": "booking",
+            "is_read": false,
+            "created_at": "2026-05-30T04:51:29.398Z"
+          },
+          {
+            "notification_id": 33,
+            "user_id": 18,
+            "title": "Booking submitted",
+            "message": "Your booking request has been submitted and is awaiting confirmation.",
+            "type": "booking",
+            "is_read": false,
+            "created_at": "2026-05-30T04:51:29.392Z"
+          },
+          {
+            "notification_id": 31,
+            "user_id": 18,
+            "title": "Booking confirmed",
+            "message": "Your guide booking request has been accepted.",
+            "type": "booking",
+            "is_read": false,
+            "created_at": "2026-05-30T04:51:29.386Z"
+          },
+          {
+            "notification_id": 30,
+            "user_id": 18,
+            "title": "Booking submitted",
+            "message": "Your booking request has been submitted and is awaiting confirmation.",
+            "type": "booking",
+            "is_read": false,
+            "created_at": "2026-05-30T04:51:29.379Z"
+          }
+        ],
+        "unreadCount": 19,
+        "pagination": {
+          "page": 1,
+          "limit": 20,
+          "total": 20,
+          "pages": 1
+        }
+      }
+    },
+    "guideDashboard": {
+      "status": "success",
+      "message": "Dashboard data retrieved",
+      "data": {
+        "user": {
+          "full_name": "Maya Tamang"
+        },
+        "guide": {
+          "verified_status": true,
+          "experience_years": 6,
+          "is_available": true
+        },
+        "stats": {
+          "totalBookings": 2,
+          "pendingRequests": 0,
+          "confirmedBookings": 2,
+          "totalReviews": 2,
+          "averageRating": "5.00",
+          "confirmedRevenue": "240",
+          "pendingRevenue": 0,
+          "notificationsUnread": 3
+        },
+        "pendingBookings": []
+      }
+    },
+    "guideBookings": {
+      "status": "success",
+      "message": "Bookings retrieved",
+      "data": {
+        "count": 2,
+        "bookings": [
+          {
+            "id": 5,
+            "touristId": 18,
+            "touristName": "Ava Sherpa",
+            "touristPhone": "9800000001",
+            "startDate": "2026-06-06T00:00:00.000Z",
+            "endDate": "2026-06-07T00:00:00.000Z",
+            "status": "confirmed",
+            "totalPrice": "120"
+          },
+          {
+            "id": 10,
+            "touristId": 18,
+            "touristName": "Ava Sherpa",
+            "touristPhone": "9800000001",
+            "startDate": "2026-06-06T00:00:00.000Z",
+            "endDate": "2026-06-07T00:00:00.000Z",
+            "status": "confirmed",
+            "totalPrice": "120"
+          }
+        ]
+      }
+    },
+    "guideReviews": {
+      "status": "success",
+      "message": "Reviews retrieved",
+      "data": {
+        "count": 2,
+        "averageRating": "5.00",
+        "reviews": [
+          {
+            "id": 4,
+            "rating": 5,
+            "comment": "Fantastic cultural storytelling and pacing. demo-2026-05-30T04:52:13.308Z",
+            "touristName": "Ava Sherpa",
+            "createdAt": "2026-05-30T04:52:14.274Z"
+          },
+          {
+            "id": 1,
+            "rating": 5,
+            "comment": "Fantastic cultural storytelling and pacing. demo-2026-05-30T04:51:27.892Z",
+            "touristName": "Ava Sherpa",
+            "createdAt": "2026-05-30T04:51:29.463Z"
+          }
+        ]
+      }
+    },
+    "guideUpcomingTours": {
+      "status": "success",
+      "message": "Upcoming tours retrieved",
+      "data": {
+        "count": 2,
+        "tours": [
+          {
+            "bookingId": 5,
+            "touristName": "Ava Sherpa",
+            "touristPhone": "9800000001",
+            "touristEmail": "tourist.ava@tourmate.app",
+            "startDate": "2026-06-06T00:00:00.000Z",
+            "endDate": "2026-06-07T00:00:00.000Z",
+            "totalPrice": "120"
+          },
+          {
+            "bookingId": 10,
+            "touristName": "Ava Sherpa",
+            "touristPhone": "9800000001",
+            "touristEmail": "tourist.ava@tourmate.app",
+            "startDate": "2026-06-06T00:00:00.000Z",
+            "endDate": "2026-06-07T00:00:00.000Z",
+            "totalPrice": "120"
+          }
+        ]
+      }
+    },
+    "guideAnalytics": {
+      "status": "success",
+      "message": "Guide analytics retrieved",
+      "data": {
+        "earnings": {
+          "confirmedRevenue": "240",
+          "pendingRevenue": 0
+        },
+        "totalBookings": 2,
+        "trends": [
+          {
+            "month": "2026-06",
+            "bookings": 2,
+            "revenue": 240
+          }
+        ]
+      }
+    },
+    "guideMessages": {
+      "status": "success",
+      "message": "Messages retrieved",
+      "data": {
+        "count": 4,
+        "messages": [
+          {
+            "id": 6,
+            "sender": {
+              "user_id": 20,
+              "full_name": "Maya Tamang",
+              "role": "guide"
+            },
+            "receiver": {
+              "user_id": 18,
+              "full_name": "Ava Sherpa",
+              "role": "tourist"
+            },
+            "content": "Looking forward to it too. I will share the meetup point soon. demo-2026-05-30T04:52:13.308Z",
+            "isRead": false,
+            "sentAt": "2026-05-30T04:52:14.297Z"
+          },
+          {
+            "id": 5,
+            "sender": {
+              "user_id": 18,
+              "full_name": "Ava Sherpa",
+              "role": "tourist"
+            },
+            "receiver": {
+              "user_id": 20,
+              "full_name": "Maya Tamang",
+              "role": "guide"
+            },
+            "content": "Hi Maya, excited for our tour. demo-2026-05-30T04:52:13.308Z",
+            "isRead": false,
+            "sentAt": "2026-05-30T04:52:14.289Z"
+          },
+          {
+            "id": 4,
+            "sender": {
+              "user_id": 20,
+              "full_name": "Maya Tamang",
+              "role": "guide"
+            },
+            "receiver": {
+              "user_id": 18,
+              "full_name": "Ava Sherpa",
+              "role": "tourist"
+            },
+            "content": "Looking forward to it too. I will share the meetup point soon. demo-2026-05-30T04:51:27.892Z",
+            "isRead": false,
+            "sentAt": "2026-05-30T04:51:29.489Z"
+          },
+          {
+            "id": 3,
+            "sender": {
+              "user_id": 18,
+              "full_name": "Ava Sherpa",
+              "role": "tourist"
+            },
+            "receiver": {
+              "user_id": 20,
+              "full_name": "Maya Tamang",
+              "role": "guide"
+            },
+            "content": "Hi Maya, excited for our tour. demo-2026-05-30T04:51:27.892Z",
+            "isRead": false,
+            "sentAt": "2026-05-30T04:51:29.478Z"
+          }
+        ]
+      }
+    },
+    "hotelDashboard": {
+      "status": "success",
+      "message": "Dashboard data retrieved",
+      "data": {
+        "user": {
+          "full_name": "Himalayan Haven Hotel"
+        },
+        "hotel": {
+          "hotel_name": "Himalayan Haven Hotel",
+          "location": "Thamel, Kathmandu, Nepal",
+          "description": "Boutique city stay close to markets, nightlife, and heritage sites.",
+          "rating": null,
+          "room_details": "{\"standard\":12,\"deluxe\":6,\"suite\":2}"
+        },
+        "stats": {
+          "totalBookings": 4,
+          "pendingRequests": 0,
+          "confirmedBookings": 0,
+          "cancelRequests": 0,
+          "roomsAvailable": 12,
+          "totalRooms": 25,
+          "totalReviews": 2,
+          "averageRating": "4.00",
+          "confirmedRevenue": "480",
+          "pendingRevenue": 0
+        },
+        "pendingBookings": []
+      }
+    },
+    "hotelBookings": {
+      "status": "success",
+      "message": "Bookings retrieved",
+      "data": {
+        "count": 4,
+        "total": 4,
+        "pagination": {
+          "page": 1,
+          "limit": 20,
+          "total": 4,
+          "pages": 1
+        },
+        "bookings": [
+          {
+            "id": 9,
+            "touristName": "Ava Sherpa",
+            "touristEmail": "tourist.ava@tourmate.app",
+            "touristPhone": "9800000001",
+            "checkIn": "2026-06-19T00:00:00.000Z",
+            "checkOut": "2026-06-21T00:00:00.000Z",
+            "status": "cancelled",
+            "totalPrice": "260"
+          },
+          {
+            "id": 14,
+            "touristName": "Ava Sherpa",
+            "touristEmail": "tourist.ava@tourmate.app",
+            "touristPhone": "9800000001",
+            "checkIn": "2026-06-19T00:00:00.000Z",
+            "checkOut": "2026-06-21T00:00:00.000Z",
+            "status": "cancelled",
+            "totalPrice": "260"
+          },
+          {
+            "id": 7,
+            "touristName": "Liam Gurung",
+            "touristEmail": "tourist.liam@tourmate.app",
+            "touristPhone": "9800000002",
+            "checkIn": "2026-06-04T00:00:00.000Z",
+            "checkOut": "2026-06-06T00:00:00.000Z",
+            "status": "completed",
+            "totalPrice": "240"
+          },
+          {
+            "id": 12,
+            "touristName": "Liam Gurung",
+            "touristEmail": "tourist.liam@tourmate.app",
+            "touristPhone": "9800000002",
+            "checkIn": "2026-06-04T00:00:00.000Z",
+            "checkOut": "2026-06-06T00:00:00.000Z",
+            "status": "completed",
+            "totalPrice": "240"
+          }
+        ]
+      }
+    },
+    "hotelReviews": {
+      "status": "success",
+      "message": "Reviews retrieved",
+      "data": {
+        "count": 2,
+        "averageRating": "4.00",
+        "reviews": [
+          {
+            "id": 5,
+            "rating": 4,
+            "comment": "Comfortable stay and warm staff service. demo-2026-05-30T04:52:13.308Z",
+            "touristName": "Liam Gurung",
+            "createdAt": "2026-05-30T04:52:14.278Z"
+          },
+          {
+            "id": 2,
+            "rating": 4,
+            "comment": "Comfortable stay and warm staff service. demo-2026-05-30T04:51:27.892Z",
+            "touristName": "Liam Gurung",
+            "createdAt": "2026-05-30T04:51:29.469Z"
+          }
+        ]
+      }
+    },
+    "hotelAnalytics": {
+      "status": "success",
+      "message": "Hotel analytics retrieved",
+      "data": {
+        "totalBookings": 4,
+        "totalRevenue": "480",
+        "trends": [
+          {
+            "month": "2026-06",
+            "bookings": 4,
+            "revenue": 1000
+          }
+        ]
+      }
+    },
+    "hotelNotifications": {
+      "status": "success",
+      "message": "Hotel notifications retrieved",
+      "data": {
+        "notifications": [
+          {
+            "notification_id": 74,
+            "user_id": 23,
+            "title": "New booking request",
+            "message": "Booking request received for Fri Jun 19 2026 - Sun Jun 21 2026.",
+            "type": "booking",
+            "is_read": true,
+            "created_at": "2026-05-30T04:52:14.252Z"
+          },
+          {
+            "notification_id": 66,
+            "user_id": 23,
+            "title": "New booking request",
+            "message": "Booking request received for Thu Jun 04 2026 - Sat Jun 06 2026.",
+            "type": "booking",
+            "is_read": false,
+            "created_at": "2026-05-30T04:52:14.212Z"
+          },
+          {
+            "notification_id": 57,
+            "user_id": 23,
+            "title": "Hotel verified",
+            "message": "Your hotel profile has been verified by admin.",
+            "type": "verification",
+            "is_read": false,
+            "created_at": "2026-05-30T04:52:14.085Z"
+          },
+          {
+            "notification_id": 43,
+            "user_id": 23,
+            "title": "New booking request",
+            "message": "Booking request received for Fri Jun 19 2026 - Sun Jun 21 2026.",
+            "type": "booking",
+            "is_read": false,
+            "created_at": "2026-05-30T04:51:29.442Z"
+          },
+          {
+            "notification_id": 35,
+            "user_id": 23,
+            "title": "New booking request",
+            "message": "Booking request received for Thu Jun 04 2026 - Sat Jun 06 2026.",
+            "type": "booking",
+            "is_read": false,
+            "created_at": "2026-05-30T04:51:29.403Z"
+          },
+          {
+            "notification_id": 26,
+            "user_id": 23,
+            "title": "Hotel verified",
+            "message": "Your hotel profile has been verified by admin.",
+            "type": "verification",
+            "is_read": false,
+            "created_at": "2026-05-30T04:51:29.276Z"
+          }
+        ],
+        "unreadCount": 5,
+        "pagination": {
+          "page": 1,
+          "limit": 20,
+          "total": 6,
+          "pages": 1
+        }
+      }
+    },
+    "publicGuides": {
+      "status": "success",
+      "message": "Guides retrieved",
+      "data": {
+        "guides": [
+          {
+            "guideId": 21,
+            "name": "Suraj Thapa",
+            "email": "guide.suraj@tourmate.app",
+            "phone": "9800000012",
+            "bio": "Outdoor guide focused on hill trails, viewpoints, and photo spots.",
+            "experienceYears": 8,
+            "avgRating": "N/A",
+            "reviewCount": 0
+          },
+          {
+            "guideId": 20,
+            "name": "Maya Tamang",
+            "email": "guide.maya@tourmate.app",
+            "phone": "9800000011",
+            "bio": "Kathmandu Valley cultural guide with deep local food knowledge.",
+            "experienceYears": 6,
+            "avgRating": "5.00",
+            "reviewCount": 2
+          },
+          {
+            "guideId": 4,
+            "name": "Runtime Guide 1775065048401",
+            "email": "runtime.guide.1775065048401@tourmate.local",
+            "phone": "0710048401",
+            "bio": null,
+            "experienceYears": 4,
+            "avgRating": "N/A",
+            "reviewCount": 0
+          },
+          {
+            "guideId": 7,
+            "name": "Runtime Guide 1775115195726",
+            "email": "runtime.guide.1775115195726@tourmate.local",
+            "phone": "0710195726",
+            "bio": null,
+            "experienceYears": 4,
+            "avgRating": "N/A",
+            "reviewCount": 0
+          }
+        ],
+        "pagination": {
+          "page": 1,
+          "limit": 20,
+          "total": 4,
+          "pages": 1
+        }
+      }
+    },
+    "publicGuideDetail": {
+      "status": "success",
+      "message": "Guide details retrieved",
+      "data": {
+        "guideId": 20,
+        "name": "Maya Tamang",
+        "email": "guide.maya@tourmate.app",
+        "phone": "9800000011",
+        "bio": "Kathmandu Valley cultural guide with deep local food knowledge.",
+        "experienceYears": 6,
+        "licenseNumber": "maya-guide-license.pdf",
+        "avgRating": "5.00",
+        "reviews": [
+          {
+            "id": 1,
+            "rating": 5,
+            "comment": "Fantastic cultural storytelling and pacing. demo-2026-05-30T04:51:27.892Z",
+            "touristName": "Ava Sherpa",
+            "createdAt": "2026-05-30T04:51:29.463Z"
+          },
+          {
+            "id": 4,
+            "rating": 5,
+            "comment": "Fantastic cultural storytelling and pacing. demo-2026-05-30T04:52:13.308Z",
+            "touristName": "Ava Sherpa",
+            "createdAt": "2026-05-30T04:52:14.274Z"
+          }
+        ],
+        "memberSince": "2026-05-30T04:51:28.480Z"
+      }
+    },
+    "publicHotels": {
+      "status": "success",
+      "message": "Hotels retrieved",
+      "data": {
+        "hotels": [
+          {
+            "hotelId": 24,
+            "name": "Lakeside Retreat",
+            "location": "Lakeside, Pokhara, Nepal",
+            "description": "Lake-facing retreat with mountain views and quiet garden rooms.",
+            "avgRating": "5.00",
+            "reviewCount": 2
+          },
+          {
+            "hotelId": 23,
+            "name": "Himalayan Haven Hotel",
+            "location": "Thamel, Kathmandu, Nepal",
+            "description": "Boutique city stay close to markets, nightlife, and heritage sites.",
+            "avgRating": "4.00",
+            "reviewCount": 2
+          },
+          {
+            "hotelId": 8,
+            "name": "Runtime Hotel 1775115195726",
+            "location": null,
+            "description": null,
+            "avgRating": "N/A",
+            "reviewCount": 0
+          },
+          {
+            "hotelId": 5,
+            "name": "Runtime Hotel 1775065048401",
+            "location": null,
+            "description": null,
+            "avgRating": "N/A",
+            "reviewCount": 0
+          }
+        ],
+        "pagination": {
+          "page": 1,
+          "limit": 20,
+          "total": 4,
+          "pages": 1
+        }
+      }
+    },
+    "publicHotelDetail": {
+      "status": "success",
+      "message": "Hotel details retrieved",
+      "data": {
+        "hotelId": 23,
+        "name": "Himalayan Haven Hotel",
+        "location": "Thamel, Kathmandu, Nepal",
+        "description": "Boutique city stay close to markets, nightlife, and heritage sites.",
+        "avgRating": "4.00",
+        "reviews": [
+          {
+            "id": 2,
+            "rating": 4,
+            "comment": "Comfortable stay and warm staff service. demo-2026-05-30T04:51:27.892Z",
+            "touristName": "Liam Gurung",
+            "createdAt": "2026-05-30T04:51:29.469Z"
+          },
+          {
+            "id": 5,
+            "rating": 4,
+            "comment": "Comfortable stay and warm staff service. demo-2026-05-30T04:52:13.308Z",
+            "touristName": "Liam Gurung",
+            "createdAt": "2026-05-30T04:52:14.278Z"
+          }
+        ],
+        "contact": {
+          "email": "hotel.himalayan@tourmate.app",
+          "phone": "9800000021"
+        },
+        "memberSince": "2026-05-30T04:51:28.889Z"
+      }
+    },
+    "publicSearch": {
+      "status": "success",
+      "message": "Search results",
+      "data": {
+        "guides": [
+          {
+            "type": "guide",
+            "id": 20,
+            "name": "Maya Tamang",
+            "bio": "Kathmandu Valley cultural guide with deep local food knowledge."
+          }
+        ],
+        "hotels": [
+          {
+            "type": "hotel",
+            "id": 23,
+            "name": "Himalayan Haven Hotel",
+            "location": "Thamel, Kathmandu, Nepal"
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,8 +1,61 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteUser = exports.getActivityLogs = exports.resolveIncident = exports.getIncidents = exports.getBookings = exports.getHotels = exports.getGuides = exports.rejectHotel = exports.verifyHotel = exports.rejectGuide = exports.verifyGuide = exports.getPendingHotelVerifications = exports.getPendingGuideVerifications = exports.getUsers = exports.getAdminDashboard = void 0;
+exports.deleteUser = exports.rejectDestinationRequest = exports.approveDestinationRequest = exports.getDestinationRequests = exports.deleteDestination = exports.updateDestination = exports.createDestination = exports.getDestinations = exports.getActivityLogs = exports.resolveIncident = exports.getIncidents = exports.getBookings = exports.getHotels = exports.getGuides = exports.rejectHotel = exports.verifyHotel = exports.rejectGuide = exports.verifyGuide = exports.getPendingHotelVerifications = exports.getPendingGuideVerifications = exports.getUsers = exports.getAdminDashboard = void 0;
 const prisma_1 = require("../prisma");
 const response_1 = require("../utils/response");
+const normalizeText = (value) => String(value ?? "").trim();
+const parseOptionalCoordinate = (value) => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+};
+const parseStringList = (value) => {
+    if (!value) {
+        return [];
+    }
+    if (Array.isArray(value)) {
+        return value.map((item) => normalizeText(item)).filter(Boolean);
+    }
+    if (typeof value === "string") {
+        try {
+            const parsed = JSON.parse(value);
+            if (Array.isArray(parsed)) {
+                return parsed.map((item) => normalizeText(item)).filter(Boolean);
+            }
+        }
+        catch {
+            return value
+                .split(",")
+                .map((item) => item.trim())
+                .filter(Boolean);
+        }
+    }
+    return [];
+};
+const mapDestination = (destination) => ({
+    destinationId: destination.destination_id,
+    name: destination.name,
+    location: destination.location,
+    latitude: destination.latitude === null || destination.latitude === undefined
+        ? null
+        : Number(destination.latitude),
+    longitude: destination.longitude === null || destination.longitude === undefined
+        ? null
+        : Number(destination.longitude),
+    description: destination.description,
+    image: destination.image,
+    category: destination.category,
+    popularityScore: destination.popularity_score,
+    difficulty: destination.difficulty,
+    duration: destination.duration,
+    bestTime: destination.best_time,
+    pricePerDayNpr: destination.price_per_day_npr === null || destination.price_per_day_npr === undefined
+        ? null
+        : Number(destination.price_per_day_npr),
+    activities: parseStringList(destination.activities),
+    highlights: parseStringList(destination.highlights),
+    createdAt: destination.created_at,
+    updatedAt: destination.updated_at,
+});
 /**
  * GET /admin/dashboard
  * Get admin dashboard with platform statistics
@@ -696,6 +749,374 @@ const getActivityLogs = async (req, res) => {
     }
 };
 exports.getActivityLogs = getActivityLogs;
+/**
+ * GET /admin/destinations
+ * List all destinations for admin management
+ */
+const getDestinations = async (req, res) => {
+    try {
+        const destinations = await prisma_1.prisma.destination.findMany({
+            orderBy: [{ name: "asc" }],
+        });
+        return (0, response_1.sendSuccess)(res, 200, "Destinations retrieved", {
+            count: destinations.length,
+            destinations: destinations.map(mapDestination),
+        });
+    }
+    catch (error) {
+        console.error("Error getting destinations:", error);
+        return (0, response_1.sendError)(res, 500, "Failed to get destinations");
+    }
+};
+exports.getDestinations = getDestinations;
+/**
+ * POST /admin/destinations
+ * Create a destination
+ */
+const createDestination = async (req, res) => {
+    try {
+        const name = normalizeText(req.body.name);
+        const location = normalizeText(req.body.location ?? req.body.address);
+        const description = normalizeText(req.body.description) || null;
+        const image = normalizeText(req.body.image) || null;
+        const category = normalizeText(req.body.category ?? req.body.type) || null;
+        const latitude = parseOptionalCoordinate(req.body.latitude);
+        const longitude = parseOptionalCoordinate(req.body.longitude);
+        const popularityScore = parseOptionalCoordinate(req.body.popularityScore ?? req.body.safetyRating);
+        const difficulty = normalizeText(req.body.difficulty) || null;
+        const duration = normalizeText(req.body.duration) || null;
+        const bestTime = normalizeText(req.body.bestTime) || null;
+        const pricePerDayNpr = parseOptionalCoordinate(req.body.pricePerDayNpr);
+        const activities = parseStringList(req.body.activities);
+        const highlights = parseStringList(req.body.highlights);
+        const errors = {};
+        if (!name)
+            errors.name = "Destination name is required.";
+        if (!location)
+            errors.location = "Destination location is required.";
+        if (Object.keys(errors).length > 0) {
+            return res.status(400).json({
+                status: "error",
+                message: "Destination validation failed",
+                errors,
+            });
+        }
+        const destination = await prisma_1.prisma.destination.create({
+            data: {
+                name,
+                location,
+                latitude,
+                longitude,
+                description,
+                image,
+                category,
+                popularity_score: popularityScore,
+                difficulty,
+                duration,
+                best_time: bestTime,
+                price_per_day_npr: pricePerDayNpr === null ? null : Math.round(pricePerDayNpr),
+                activities: activities.length > 0 ? JSON.stringify(activities) : null,
+                highlights: highlights.length > 0 ? JSON.stringify(highlights) : null,
+            },
+        });
+        await prisma_1.prisma.admin_action.create({
+            data: {
+                admin_id: req.user?.id,
+                action_type: "destination_created",
+                action_description: `Destination ${destination.name} created.`,
+            },
+        });
+        return (0, response_1.sendSuccess)(res, 201, "Destination created", {
+            destination: mapDestination(destination),
+        });
+    }
+    catch (error) {
+        console.error("Error creating destination:", error);
+        return (0, response_1.sendError)(res, 500, "Failed to create destination");
+    }
+};
+exports.createDestination = createDestination;
+/**
+ * PUT /admin/destinations/:id
+ * Update a destination
+ */
+const updateDestination = async (req, res) => {
+    try {
+        const destinationId = Number.parseInt(req.params.id, 10);
+        if (!Number.isInteger(destinationId) || destinationId <= 0) {
+            return (0, response_1.sendError)(res, 400, "Invalid destination id");
+        }
+        const name = normalizeText(req.body.name);
+        const location = normalizeText(req.body.location ?? req.body.address);
+        const description = normalizeText(req.body.description) || null;
+        const image = normalizeText(req.body.image) || null;
+        const category = normalizeText(req.body.category ?? req.body.type) || null;
+        const latitude = parseOptionalCoordinate(req.body.latitude);
+        const longitude = parseOptionalCoordinate(req.body.longitude);
+        const popularityScore = parseOptionalCoordinate(req.body.popularityScore ?? req.body.safetyRating);
+        const difficulty = normalizeText(req.body.difficulty) || null;
+        const duration = normalizeText(req.body.duration) || null;
+        const bestTime = normalizeText(req.body.bestTime) || null;
+        const pricePerDayNpr = parseOptionalCoordinate(req.body.pricePerDayNpr);
+        const activities = parseStringList(req.body.activities);
+        const highlights = parseStringList(req.body.highlights);
+        const existing = await prisma_1.prisma.destination.findUnique({
+            where: { destination_id: destinationId },
+        });
+        if (!existing) {
+            return (0, response_1.sendError)(res, 404, "Destination not found");
+        }
+        const destination = await prisma_1.prisma.destination.update({
+            where: { destination_id: destinationId },
+            data: {
+                name: name || existing.name,
+                location: location || existing.location,
+                description,
+                image,
+                category,
+                latitude,
+                longitude,
+                popularity_score: popularityScore,
+                difficulty,
+                duration,
+                best_time: bestTime,
+                price_per_day_npr: pricePerDayNpr === null ? null : Math.round(pricePerDayNpr),
+                activities: activities.length > 0 ? JSON.stringify(activities) : null,
+                highlights: highlights.length > 0 ? JSON.stringify(highlights) : null,
+            },
+        });
+        await prisma_1.prisma.admin_action.create({
+            data: {
+                admin_id: req.user?.id,
+                action_type: "destination_updated",
+                action_description: `Destination ${destination.name} updated.`,
+            },
+        });
+        return (0, response_1.sendSuccess)(res, 200, "Destination updated", {
+            destination: mapDestination(destination),
+        });
+    }
+    catch (error) {
+        console.error("Error updating destination:", error);
+        return (0, response_1.sendError)(res, 500, "Failed to update destination");
+    }
+};
+exports.updateDestination = updateDestination;
+/**
+ * DELETE /admin/destinations/:id
+ * Delete a destination
+ */
+const deleteDestination = async (req, res) => {
+    try {
+        const destinationId = Number.parseInt(req.params.id, 10);
+        if (!Number.isInteger(destinationId) || destinationId <= 0) {
+            return (0, response_1.sendError)(res, 400, "Invalid destination id");
+        }
+        const destination = await prisma_1.prisma.destination.findUnique({
+            where: { destination_id: destinationId },
+        });
+        if (!destination) {
+            return (0, response_1.sendError)(res, 404, "Destination not found");
+        }
+        await prisma_1.prisma.destination.delete({
+            where: { destination_id: destinationId },
+        });
+        await prisma_1.prisma.admin_action.create({
+            data: {
+                admin_id: req.user?.id,
+                action_type: "destination_deleted",
+                action_description: `Destination ${destination.name} deleted.`,
+            },
+        });
+        return (0, response_1.sendSuccess)(res, 200, "Destination deleted", {
+            destinationId,
+        });
+    }
+    catch (error) {
+        console.error("Error deleting destination:", error);
+        return (0, response_1.sendError)(res, 500, "Failed to delete destination");
+    }
+};
+exports.deleteDestination = deleteDestination;
+/**
+ * GET /admin/destination-requests
+ * List guide destination requests
+ */
+const getDestinationRequests = async (req, res) => {
+    try {
+        const requests = await prisma_1.prisma.destination_request.findMany({
+            include: {
+                guide: {
+                    include: {
+                        users: {
+                            select: {
+                                full_name: true,
+                                email: true,
+                            },
+                        },
+                    },
+                },
+                destination_approved: true,
+            },
+            orderBy: [{ created_at: "desc" }],
+        });
+        return (0, response_1.sendSuccess)(res, 200, "Destination requests retrieved", {
+            count: requests.length,
+            requests: requests.map((request) => ({
+                requestId: request.request_id,
+                guideId: request.guide_id,
+                guideName: request.guide?.users?.full_name || request.requester_name || "Guide",
+                guideEmail: request.guide?.users?.email || request.requester_email || null,
+                destinationName: request.destination_name,
+                location: request.location,
+                reason: request.reason,
+                image: request.image,
+                latitude: request.latitude === null || request.latitude === undefined
+                    ? null
+                    : Number(request.latitude),
+                longitude: request.longitude === null || request.longitude === undefined
+                    ? null
+                    : Number(request.longitude),
+                status: request.status,
+                rejectionReason: request.rejection_reason,
+                approvedDestinationId: request.approved_destination_id,
+                approvedDestinationName: request.destination_approved?.name || null,
+                createdAt: request.created_at,
+                reviewedAt: request.reviewed_at,
+            })),
+        });
+    }
+    catch (error) {
+        console.error("Error getting destination requests:", error);
+        return (0, response_1.sendError)(res, 500, "Failed to get destination requests");
+    }
+};
+exports.getDestinationRequests = getDestinationRequests;
+/**
+ * PATCH /admin/destination-requests/:id/approve
+ * Approve a destination request and create destination if needed
+ */
+const approveDestinationRequest = async (req, res) => {
+    try {
+        const requestId = Number.parseInt(req.params.id, 10);
+        if (!Number.isInteger(requestId) || requestId <= 0) {
+            return (0, response_1.sendError)(res, 400, "Invalid destination request id");
+        }
+        const request = await prisma_1.prisma.destination_request.findUnique({
+            where: { request_id: requestId },
+        });
+        if (!request) {
+            return (0, response_1.sendError)(res, 404, "Destination request not found");
+        }
+        if (request.status === "approved") {
+            return (0, response_1.sendError)(res, 400, "Destination request already approved");
+        }
+        const destination = await prisma_1.prisma.destination.create({
+            data: {
+                name: request.destination_name,
+                location: request.location,
+                latitude: request.latitude,
+                longitude: request.longitude,
+                image: request.image,
+                description: request.reason,
+                category: normalizeText(req.body.category) || "Requested",
+                popularity_score: parseOptionalCoordinate(req.body.popularityScore),
+            },
+        });
+        await prisma_1.prisma.destination_request.update({
+            where: { request_id: requestId },
+            data: {
+                status: "approved",
+                approved_destination_id: destination.destination_id,
+                reviewed_at: new Date(),
+                rejection_reason: null,
+            },
+        });
+        if (request.guide_id) {
+            await prisma_1.prisma.notification.create({
+                data: {
+                    user_id: request.guide_id,
+                    title: "Destination request approved",
+                    message: `${request.destination_name} has been approved and added to TourMate.`,
+                    type: "destination_request",
+                    is_read: false,
+                },
+            });
+        }
+        await prisma_1.prisma.admin_action.create({
+            data: {
+                admin_id: req.user?.id,
+                target_user_id: request.guide_id || undefined,
+                action_type: "destination_request_approved",
+                action_description: `Destination request ${request.destination_name} approved.`,
+            },
+        });
+        return (0, response_1.sendSuccess)(res, 200, "Destination request approved", {
+            requestId,
+            destination: mapDestination(destination),
+        });
+    }
+    catch (error) {
+        console.error("Error approving destination request:", error);
+        return (0, response_1.sendError)(res, 500, "Failed to approve destination request");
+    }
+};
+exports.approveDestinationRequest = approveDestinationRequest;
+/**
+ * PATCH /admin/destination-requests/:id/reject
+ * Reject a destination request
+ */
+const rejectDestinationRequest = async (req, res) => {
+    try {
+        const requestId = Number.parseInt(req.params.id, 10);
+        const reason = normalizeText(req.body.reason) || "Request rejected by admin.";
+        if (!Number.isInteger(requestId) || requestId <= 0) {
+            return (0, response_1.sendError)(res, 400, "Invalid destination request id");
+        }
+        const request = await prisma_1.prisma.destination_request.findUnique({
+            where: { request_id: requestId },
+        });
+        if (!request) {
+            return (0, response_1.sendError)(res, 404, "Destination request not found");
+        }
+        await prisma_1.prisma.destination_request.update({
+            where: { request_id: requestId },
+            data: {
+                status: "rejected",
+                rejection_reason: reason,
+                reviewed_at: new Date(),
+            },
+        });
+        if (request.guide_id) {
+            await prisma_1.prisma.notification.create({
+                data: {
+                    user_id: request.guide_id,
+                    title: "Destination request rejected",
+                    message: `${request.destination_name} was rejected: ${reason}`,
+                    type: "destination_request",
+                    is_read: false,
+                },
+            });
+        }
+        await prisma_1.prisma.admin_action.create({
+            data: {
+                admin_id: req.user?.id,
+                target_user_id: request.guide_id || undefined,
+                action_type: "destination_request_rejected",
+                action_description: `Destination request ${request.destination_name} rejected. Reason: ${reason}`,
+            },
+        });
+        return (0, response_1.sendSuccess)(res, 200, "Destination request rejected", {
+            requestId,
+            reason,
+        });
+    }
+    catch (error) {
+        console.error("Error rejecting destination request:", error);
+        return (0, response_1.sendError)(res, 500, "Failed to reject destination request");
+    }
+};
+exports.rejectDestinationRequest = rejectDestinationRequest;
 /**
  * DELETE /admin/users/:userId
  * Delete/suspend a user

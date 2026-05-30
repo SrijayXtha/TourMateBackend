@@ -4,67 +4,206 @@ import { sendSuccess, sendError } from "../utils/response";
 
 const router = Router();
 
-/**
- * Public endpoints - No authentication required
- */
+const parsePagination = (pageValue: unknown, limitValue: unknown) => {
+  const page = Math.max(1, Number.parseInt(String(pageValue || "1"), 10) || 1);
+  const limit = Math.min(100, Math.max(1, Number.parseInt(String(limitValue || "10"), 10) || 10));
+  const skip = (page - 1) * limit;
+  return { page, limit, skip };
+};
+
+const parseJsonArray = (value: unknown): string[] => {
+  if (!value) {
+    return [];
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item ?? "").trim()).filter(Boolean);
+  }
+
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) {
+        return parsed.map((item) => String(item ?? "").trim()).filter(Boolean);
+      }
+    } catch {
+      return value
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+  }
+
+  return [];
+};
+
+const averageRating = (ratings: Array<{ rating: number | null }>): string => {
+  if (ratings.length === 0) {
+    return "N/A";
+  }
+
+  const total = ratings.reduce((sum, item) => sum + Number(item.rating || 0), 0);
+  return (total / ratings.length).toFixed(2);
+};
+
+const mapDestination = (destination: any) => ({
+  destinationId: destination.destination_id,
+  name: destination.name,
+  location: destination.location,
+  latitude:
+    destination.latitude === null || destination.latitude === undefined
+      ? null
+      : Number(destination.latitude),
+  longitude:
+    destination.longitude === null || destination.longitude === undefined
+      ? null
+      : Number(destination.longitude),
+  description: destination.description,
+  image: destination.image,
+  category: destination.category,
+  popularityScore: destination.popularity_score,
+  difficulty: destination.difficulty,
+  duration: destination.duration,
+  bestTime: destination.best_time,
+  pricePerDayNpr:
+    destination.price_per_day_npr === null || destination.price_per_day_npr === undefined
+      ? null
+      : Number(destination.price_per_day_npr),
+  activities: parseJsonArray(destination.activities),
+  highlights: parseJsonArray(destination.highlights),
+});
+
+const guideInclude = {
+  users: {
+    select: {
+      full_name: true,
+      email: true,
+      phone: true,
+      created_at: true,
+      profile_photo: true,
+    },
+  },
+  review: {
+    select: {
+      rating: true,
+    },
+  },
+  guide_destination: {
+    include: {
+      destination: true,
+    },
+  },
+} as const;
 
 /**
- * GET /public/guides
- * List all verified guides with ratings
+ * GET /destinations
+ * List official destinations
+ */
+router.get("/destinations", async (_req: Request, res: Response) => {
+  try {
+    const destinations = await prisma.destination.findMany({
+      orderBy: [{ popularity_score: "desc" }, { name: "asc" }],
+    });
+
+    return sendSuccess(res, 200, "Destinations retrieved", {
+      count: destinations.length,
+      destinations: destinations.map(mapDestination),
+    });
+  } catch (error) {
+    console.error("Error getting destinations:", error);
+    return sendError(res, 500, "Failed to get destinations");
+  }
+});
+
+/**
+ * GET /guides
+ * List all verified guides with destination/language filtering
  */
 router.get("/guides", async (req: Request, res: Response) => {
   try {
-    const { page = "1", limit = "10", destination } = req.query;
+    const { page, limit, skip } = parsePagination(req.query.page, req.query.limit);
+    const search = String(req.query.search || "").trim();
+    const destinationId = Number.parseInt(String(req.query.destinationId || ""), 10);
+    const language = String(req.query.language || "").trim();
+    const specialization = String(req.query.specialization || "").trim();
 
-    const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
-    const take = parseInt(limit as string);
+    const where: any = {
+      verified_status: true,
+    };
+
+    if (destinationId > 0) {
+      where.guide_destination = {
+        some: {
+          destination_id: destinationId,
+        },
+      };
+    }
+
+    if (specialization) {
+      where.specialization = {
+        contains: specialization,
+        mode: "insensitive",
+      };
+    }
 
     const guides = await prisma.guide.findMany({
-      where: {
-        verified_status: true,
-      },
-      include: {
-        users: {
-          select: {
-            full_name: true,
-            email: true,
-            phone: true,
-          },
-        },
-        review: {
-          select: {
-            rating: true,
-          },
-        },
-      },
+      where,
+      include: guideInclude,
       skip,
-      take,
+      take: limit,
       orderBy: { experience_years: "desc" },
     });
 
-    const total = await prisma.guide.count({
-      where: { verified_status: true },
+    const normalizedSearch = search.toLowerCase();
+    const normalizedLanguage = language.toLowerCase();
+
+    const filteredGuides = guides.filter((guide) => {
+      const languages = parseJsonArray(guide.languages);
+      const destinations = guide.guide_destination.map((item) => item.destination);
+      const destinationNames = destinations.map((item) => item.name);
+      const haystack = [
+        guide.users.full_name,
+        guide.specialization || "",
+        guide.bio || "",
+        ...languages,
+        ...destinationNames,
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      const matchesSearch = !normalizedSearch || haystack.includes(normalizedSearch);
+      const matchesLanguage =
+        !normalizedLanguage ||
+        languages.some((item) => item.toLowerCase().includes(normalizedLanguage));
+
+      return matchesSearch && matchesLanguage;
     });
 
     return sendSuccess(res, 200, "Guides retrieved", {
-      guides: guides.map((g) => ({
-        guideId: g.guide_id,
-        name: g.users.full_name,
-        email: g.users.email,
-        phone: g.users.phone,
-        bio: g.bio,
-        experienceYears: g.experience_years,
-        avgRating:
-          g.review.length > 0
-            ? (g.review.reduce((sum: number, r) => sum + (r.rating || 0), 0) / g.review.length).toFixed(2)
-            : "N/A",
-        reviewCount: g.review.length,
+      guides: filteredGuides.map((guide) => ({
+        guideId: guide.guide_id,
+        name: guide.users.full_name,
+        email: guide.users.email,
+        phone: guide.users.phone,
+        photo: guide.users.profile_photo,
+        bio: guide.bio,
+        experienceYears: guide.experience_years,
+        specialization: guide.specialization,
+        languages: parseJsonArray(guide.languages),
+        destinations: guide.guide_destination.map((item) => ({
+          destinationId: item.destination.destination_id,
+          name: item.destination.name,
+          location: item.destination.location,
+          category: item.destination.category,
+        })),
+        avgRating: averageRating(guide.review),
+        reviewCount: guide.review.length,
       })),
       pagination: {
-        page: parseInt(page as string),
-        limit: take,
-        total,
-        pages: Math.ceil(total / take),
+        page,
+        limit,
+        total: filteredGuides.length,
+        pages: Math.max(1, Math.ceil(filteredGuides.length / limit)),
       },
     });
   } catch (error) {
@@ -74,24 +213,17 @@ router.get("/guides", async (req: Request, res: Response) => {
 });
 
 /**
- * GET /public/guides/:guideId
+ * GET /guides/:guideId
  * Get guide details with reviews
  */
 router.get("/guides/:guideId", async (req: Request, res: Response) => {
   try {
-    const { guideId } = req.params;
+    const guideId = Number.parseInt(req.params.guideId, 10);
 
     const guide = await prisma.guide.findUnique({
-      where: { guide_id: parseInt(guideId) },
+      where: { guide_id: guideId },
       include: {
-        users: {
-          select: {
-            full_name: true,
-            email: true,
-            phone: true,
-            created_at: true,
-          },
-        },
+        users: guideInclude.users,
         review: {
           include: {
             tourist: {
@@ -103,33 +235,38 @@ router.get("/guides/:guideId", async (req: Request, res: Response) => {
             },
           },
         },
+        guide_destination: guideInclude.guide_destination,
       },
     });
 
-    if (!guide) {
+    if (!guide || !guide.verified_status) {
       return sendError(res, 404, "Guide not found");
     }
-
-    const avgRating =
-      guide.review.length > 0
-        ? (guide.review.reduce((sum: number, r) => sum + (r.rating || 0), 0) / guide.review.length).toFixed(2)
-        : "0";
 
     return sendSuccess(res, 200, "Guide details retrieved", {
       guideId: guide.guide_id,
       name: guide.users.full_name,
       email: guide.users.email,
       phone: guide.users.phone,
+      photo: guide.users.profile_photo,
       bio: guide.bio,
       experienceYears: guide.experience_years,
+      specialization: guide.specialization,
+      languages: parseJsonArray(guide.languages),
+      destinations: guide.guide_destination.map((item) => ({
+        destinationId: item.destination.destination_id,
+        name: item.destination.name,
+        location: item.destination.location,
+        category: item.destination.category,
+      })),
       licenseNumber: guide.license_number,
-      avgRating,
-      reviews: guide.review.map((r) => ({
-        id: r.review_id,
-        rating: r.rating,
-        comment: r.comment,
-        touristName: r.tourist?.users?.full_name,
-        createdAt: r.created_at,
+      avgRating: averageRating(guide.review),
+      reviews: guide.review.map((item) => ({
+        id: item.review_id,
+        rating: item.rating,
+        comment: item.comment,
+        touristName: item.tourist?.users?.full_name,
+        createdAt: item.created_at,
       })),
       memberSince: guide.users.created_at,
     });
@@ -140,15 +277,12 @@ router.get("/guides/:guideId", async (req: Request, res: Response) => {
 });
 
 /**
- * GET /public/hotels
+ * GET /hotels
  * List all hotels with ratings
  */
 router.get("/hotels", async (req: Request, res: Response) => {
   try {
-    const { page = "1", limit = "10" } = req.query;
-
-    const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
-    const take = parseInt(limit as string);
+    const { page, limit, skip } = parsePagination(req.query.page, req.query.limit);
 
     const hotels = await prisma.hotel.findMany({
       where: {
@@ -169,29 +303,26 @@ router.get("/hotels", async (req: Request, res: Response) => {
         },
       },
       skip,
-      take,
+      take: limit,
       orderBy: { hotel_id: "desc" },
     });
 
     const total = await prisma.hotel.count({ where: { verified_status: true } });
 
     return sendSuccess(res, 200, "Hotels retrieved", {
-      hotels: hotels.map((h) => ({
-        hotelId: h.hotel_id,
-        name: h.hotel_name,
-        location: h.location,
-        description: h.description,
-        avgRating:
-          h.review.length > 0
-            ? (h.review.reduce((sum: number, r) => sum + (r.rating || 0), 0) / h.review.length).toFixed(2)
-            : "N/A",
-        reviewCount: h.review.length,
+      hotels: hotels.map((hotel) => ({
+        hotelId: hotel.hotel_id,
+        name: hotel.hotel_name,
+        location: hotel.location,
+        description: hotel.description,
+        avgRating: averageRating(hotel.review),
+        reviewCount: hotel.review.length,
       })),
       pagination: {
-        page: parseInt(page as string),
-        limit: take,
+        page,
+        limit,
         total,
-        pages: Math.ceil(total / take),
+        pages: Math.ceil(total / limit),
       },
     });
   } catch (error) {
@@ -201,15 +332,15 @@ router.get("/hotels", async (req: Request, res: Response) => {
 });
 
 /**
- * GET /public/hotels/:hotelId
+ * GET /hotels/:hotelId
  * Get hotel details with reviews
  */
 router.get("/hotels/:hotelId", async (req: Request, res: Response) => {
   try {
-    const { hotelId } = req.params;
+    const hotelId = Number.parseInt(req.params.hotelId, 10);
 
     const hotel = await prisma.hotel.findUnique({
-      where: { hotel_id: parseInt(hotelId) },
+      where: { hotel_id: hotelId },
       include: {
         users: {
           select: {
@@ -233,31 +364,22 @@ router.get("/hotels/:hotelId", async (req: Request, res: Response) => {
       },
     });
 
-    if (!hotel) {
+    if (!hotel || !hotel.verified_status) {
       return sendError(res, 404, "Hotel not found");
     }
-
-    if (!hotel.verified_status) {
-      return sendError(res, 404, "Hotel not found");
-    }
-
-    const avgRating =
-      hotel.review.length > 0
-        ? (hotel.review.reduce((sum: number, r) => sum + (r.rating || 0), 0) / hotel.review.length).toFixed(2)
-        : "0";
 
     return sendSuccess(res, 200, "Hotel details retrieved", {
       hotelId: hotel.hotel_id,
       name: hotel.hotel_name,
       location: hotel.location,
       description: hotel.description,
-      avgRating,
-      reviews: hotel.review.map((r) => ({
-        id: r.review_id,
-        rating: r.rating,
-        comment: r.comment,
-        touristName: r.tourist?.users?.full_name,
-        createdAt: r.created_at,
+      avgRating: averageRating(hotel.review),
+      reviews: hotel.review.map((item) => ({
+        id: item.review_id,
+        rating: item.rating,
+        comment: item.comment,
+        touristName: item.tourist?.users?.full_name,
+        createdAt: item.created_at,
       })),
       contact: {
         email: hotel.users.email,
@@ -272,48 +394,53 @@ router.get("/hotels/:hotelId", async (req: Request, res: Response) => {
 });
 
 /**
- * GET /public/search
- * Search guides/hotels by keywords
+ * GET /search
+ * Search guides/hotels/destinations by keyword
  */
 router.get("/search", async (req: Request, res: Response) => {
   try {
-    const { q, type = "all" } = req.query;
+    const searchQuery = String(req.query.q || "").trim();
+    const type = String(req.query.type || "all").trim().toLowerCase();
 
-    if (!q) {
+    if (!searchQuery) {
       return sendError(res, 400, "Search query required");
     }
 
-    const searchQuery = (q as string).toLowerCase();
+    const normalized = searchQuery.toLowerCase();
     let guides: any[] = [];
     let hotels: any[] = [];
+    let destinations: any[] = [];
 
     if (type === "guides" || type === "all") {
-      guides = await prisma.guide.findMany({
-        where: {
-          verified_status: true,
-          OR: [
-            {
-              bio: {
-                contains: searchQuery,
-                mode: "insensitive",
-              },
-            },
-            {
-              users: {
-                full_name: {
-                  contains: searchQuery,
-                  mode: "insensitive",
-                },
-              },
-            },
-          ],
-        },
-        include: {
-          users: { select: { full_name: true } },
-          review: { select: { rating: true } },
-        },
-        take: 10,
+      const guideResults = await prisma.guide.findMany({
+        where: { verified_status: true },
+        include: guideInclude,
+        take: 25,
       });
+
+      guides = guideResults
+        .filter((guide) => {
+          const languages = parseJsonArray(guide.languages);
+          const destinationNames = guide.guide_destination.map((item) => item.destination.name);
+          const haystack = [
+            guide.users.full_name,
+            guide.specialization || "",
+            guide.bio || "",
+            ...languages,
+            ...destinationNames,
+          ]
+            .join(" ")
+            .toLowerCase();
+          return haystack.includes(normalized);
+        })
+        .map((guide) => ({
+          type: "guide",
+          id: guide.guide_id,
+          name: guide.users.full_name,
+          bio: guide.bio,
+          languages: parseJsonArray(guide.languages),
+          destinations: guide.guide_destination.map((item) => item.destination.name),
+        }));
     }
 
     if (type === "hotels" || type === "all") {
@@ -321,46 +448,45 @@ router.get("/search", async (req: Request, res: Response) => {
         where: {
           verified_status: true,
           OR: [
-            {
-              hotel_name: {
-                contains: searchQuery,
-                mode: "insensitive",
-              },
-            },
-            {
-              location: {
-                contains: searchQuery,
-                mode: "insensitive",
-              },
-            },
-            {
-              description: {
-                contains: searchQuery,
-                mode: "insensitive",
-              },
-            },
+            { hotel_name: { contains: searchQuery, mode: "insensitive" } },
+            { location: { contains: searchQuery, mode: "insensitive" } },
+            { description: { contains: searchQuery, mode: "insensitive" } },
           ],
         },
         include: {
-          users: { select: { full_name: true } },
           review: { select: { rating: true } },
         },
         take: 10,
       });
     }
 
+    if (type === "all") {
+      destinations = await prisma.destination.findMany({
+        where: {
+          OR: [
+            { name: { contains: searchQuery, mode: "insensitive" } },
+            { location: { contains: searchQuery, mode: "insensitive" } },
+            { description: { contains: searchQuery, mode: "insensitive" } },
+            { category: { contains: searchQuery, mode: "insensitive" } },
+          ],
+        },
+        take: 10,
+      });
+    }
+
     return sendSuccess(res, 200, "Search results", {
-      guides: guides.map((g) => ({
-        type: "guide",
-        id: g.guide_id,
-        name: g.users.full_name,
-        bio: g.bio,
-      })),
-      hotels: hotels.map((h) => ({
+      guides,
+      hotels: hotels.map((hotel: any) => ({
         type: "hotel",
-        id: h.hotel_id,
-        name: h.hotel_name,
-        location: h.location,
+        id: hotel.hotel_id,
+        name: hotel.hotel_name,
+        location: hotel.location,
+      })),
+      destinations: destinations.map((destination: any) => ({
+        type: "destination",
+        id: destination.destination_id,
+        name: destination.name,
+        location: destination.location,
       })),
     });
   } catch (error) {

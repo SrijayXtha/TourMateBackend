@@ -20,7 +20,15 @@ const authMiddleware = (req, res, next) => {
             return res.status(500).json({ status: "error", message: "Server configuration error" });
         }
         const decoded = jsonwebtoken_1.default.verify(token, JWT_SECRET);
-        req.user = decoded;
+        const rawUserId = decoded.userId ?? decoded.id;
+        if (typeof rawUserId !== "number" || !Number.isInteger(rawUserId) || rawUserId <= 0) {
+            return res.status(401).json({ status: "error", message: "Invalid token payload" });
+        }
+        const userId = rawUserId;
+        req.user = {
+            id: userId,
+            role: decoded.role,
+        };
         next();
     }
     catch (error) {

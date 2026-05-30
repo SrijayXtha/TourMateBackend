@@ -27,6 +27,9 @@
   "scripts": {
     "dev": "nodemon --watch src --ext ts,json --exec ts-node src/server.ts",
     "build": "tsc",
-    "start": "npm run build && node dist/server.js"
+    "start": "npm run build && node dist/server.js",
+    "test:registration-validation": "node scripts/registration-validation-smoke.js",
+    "test:destination-management": "node scripts/destination-management-smoke.js",
+    "seed:demo-api": "node scripts/seed-demo-data.js"
   }
 }

@@ -28,4 +28,7 @@ router.delete("/notifications/:notificationId", auth_middleware_1.authMiddleware
 // Messaging
 router.get("/messages", auth_middleware_1.authMiddleware, (0, auth_middleware_1.roleGuard)(["guide"]), guide_controller_1.getGuideMessages);
 router.post("/messages", auth_middleware_1.authMiddleware, (0, auth_middleware_1.roleGuard)(["guide"]), guide_controller_1.sendGuideMessage);
+// Destination requests
+router.get("/destination-requests", auth_middleware_1.authMiddleware, (0, auth_middleware_1.roleGuard)(["guide"]), guide_controller_1.getGuideDestinationRequests);
+router.post("/destination-requests", auth_middleware_1.authMiddleware, (0, auth_middleware_1.roleGuard)(["guide"]), guide_controller_1.createGuideDestinationRequest);
 exports.default = router;

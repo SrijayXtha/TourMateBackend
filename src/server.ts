@@ -7,6 +7,11 @@ import cors from "cors";
 
 
 import authRoutes from "./routes/auth.routes";
+import touristRoutes from "./routes/tourist.routes";
+import guideRoutes from "./routes/guide.routes";
+import hotelRoutes from "./routes/hotel.routes";
+import adminRoutes from "./routes/admin.routes";
+import publicRoutes from "./routes/public.routes";
 
 import { checkDatabaseConnection } from "./db-check";
 
@@ -23,8 +28,8 @@ const app = express();
 // MIDDLEWARE
 
 app.use(cors());
-
-app.use(express.json());
+app.use(express.json({ limit: "25mb" }));
+app.use(express.urlencoded({ extended: true, limit: "25mb" }));
 
 
 
@@ -39,6 +44,12 @@ console.log("  DATABASE_URL:", process.env.DATABASE_URL ? "‚úÖ Configured" : "‚ù
 // ROUTES
 
 app.use("/auth", authRoutes);
+app.use("/tourist", touristRoutes);
+app.use("/guide", guideRoutes);
+app.use("/hotel", hotelRoutes);
+app.use("/admin", adminRoutes);
+app.use("/", publicRoutes);
+app.use("/public", publicRoutes);
 
 
 

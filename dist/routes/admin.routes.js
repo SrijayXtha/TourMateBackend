@@ -28,4 +28,12 @@ router.get("/incidents", auth_middleware_1.authMiddleware, (0, auth_middleware_1
 router.patch("/incidents/:incidentId/resolve", auth_middleware_1.authMiddleware, (0, auth_middleware_1.roleGuard)(["admin"]), admin_controller_1.resolveIncident);
 // Activity logs
 router.get("/activities", auth_middleware_1.authMiddleware, (0, auth_middleware_1.roleGuard)(["admin"]), admin_controller_1.getActivityLogs);
+// Destination management
+router.get("/destinations", auth_middleware_1.authMiddleware, (0, auth_middleware_1.roleGuard)(["admin"]), admin_controller_1.getDestinations);
+router.post("/destinations", auth_middleware_1.authMiddleware, (0, auth_middleware_1.roleGuard)(["admin"]), admin_controller_1.createDestination);
+router.put("/destinations/:id", auth_middleware_1.authMiddleware, (0, auth_middleware_1.roleGuard)(["admin"]), admin_controller_1.updateDestination);
+router.delete("/destinations/:id", auth_middleware_1.authMiddleware, (0, auth_middleware_1.roleGuard)(["admin"]), admin_controller_1.deleteDestination);
+router.get("/destination-requests", auth_middleware_1.authMiddleware, (0, auth_middleware_1.roleGuard)(["admin"]), admin_controller_1.getDestinationRequests);
+router.patch("/destination-requests/:id/approve", auth_middleware_1.authMiddleware, (0, auth_middleware_1.roleGuard)(["admin"]), admin_controller_1.approveDestinationRequest);
+router.patch("/destination-requests/:id/reject", auth_middleware_1.authMiddleware, (0, auth_middleware_1.roleGuard)(["admin"]), admin_controller_1.rejectDestinationRequest);
 exports.default = router;

@@ -34,31 +34,41 @@ model booking {
 }
 
 model guide {
-  guide_id         Int       @id
-  bio              String?
-  experience_years Int?
-  license_number   String?   @db.VarChar(100)
-  verified_status  Boolean?  @default(false)
-  is_available     Boolean?  @default(true)
-  booking          booking[]
-  users            users     @relation(fields: [guide_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
-  review           review[]
+  guide_id          Int       @id
+  bio               String?
+  experience_years  Int?
+  experience_label  String?   @db.VarChar(50)
+  specialization    String?   @db.VarChar(150)
+  languages         String?
+  license_number    String?   @db.VarChar(100)
+  license_document  String?
+  verified_status   Boolean?  @default(false)
+  is_available      Boolean?  @default(true)
+  booking           booking[]
+  destination_request destination_request[]
+  guide_destination guide_destination[]
+  users             users     @relation(fields: [guide_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  review            review[]
 }
 
 model hotel {
-  hotel_id        Int       @id
-  hotel_name      String?   @db.VarChar(200)
-  location        String?   @db.VarChar(200)
-  description     String?
-  rating          Float?
-  verified_status Boolean?  @default(false)
-  base_price      Decimal?  @db.Decimal(10, 2)
-  images          String?
-  room_details    String?
-  facilities      String?
-  booking         booking[]
-  users           users     @relation(fields: [hotel_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
-  review          review[]
+  hotel_id             Int       @id
+  hotel_name           String?   @db.VarChar(200)
+  location             String?   @db.VarChar(200)
+  latitude             Decimal?  @db.Decimal(10, 7)
+  longitude            Decimal?  @db.Decimal(10, 7)
+  registration_number  String?   @db.VarChar(120)
+  license_document     String?
+  description          String?
+  rating               Float?
+  verified_status      Boolean?  @default(false)
+  base_price           Decimal?  @db.Decimal(10, 2)
+  images               String?
+  room_details         String?
+  facilities           String?
+  booking              booking[]
+  users                users     @relation(fields: [hotel_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+  review               review[]
 }
 
 model incident_report {
@@ -121,6 +131,58 @@ model notification {
   users           users     @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
 }
 
+model destination {
+  destination_id      Int                   @id @default(autoincrement())
+  name                String                @db.VarChar(160)
+  location            String                @db.VarChar(255)
+  latitude            Decimal?              @db.Decimal(10, 7)
+  longitude           Decimal?              @db.Decimal(10, 7)
+  description         String?
+  image               String?
+  category            String?               @db.VarChar(120)
+  popularity_score    Float?
+  difficulty          String?               @db.VarChar(80)
+  duration            String?               @db.VarChar(80)
+  best_time           String?               @db.VarChar(120)
+  price_per_day_npr   Int?
+  activities          String?
+  highlights          String?
+  created_at          DateTime?             @default(now()) @db.Timestamp(6)
+  updated_at          DateTime?             @default(now()) @updatedAt @db.Timestamp(6)
+  destination_request destination_request[] @relation("approved_destination")
+  guide_destination   guide_destination[]
+}
+
+model guide_destination {
+  id             Int         @id @default(autoincrement())
+  guide_id       Int
+  destination_id Int
+  destination    destination @relation(fields: [destination_id], references: [destination_id], onDelete: Cascade, onUpdate: NoAction)
+  guide          guide       @relation(fields: [guide_id], references: [guide_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([guide_id, destination_id])
+}
+
+model destination_request {
+  request_id               Int          @id @default(autoincrement())
+  guide_id                 Int?
+  requester_name           String?      @db.VarChar(160)
+  requester_email          String?      @db.VarChar(255)
+  destination_name         String       @db.VarChar(160)
+  location                 String       @db.VarChar(255)
+  reason                   String
+  image                    String?
+  latitude                 Decimal?     @db.Decimal(10, 7)
+  longitude                Decimal?     @db.Decimal(10, 7)
+  status                   String       @default("pending") @db.VarChar(40)
+  rejection_reason         String?
+  created_at               DateTime?    @default(now()) @db.Timestamp(6)
+  reviewed_at              DateTime?    @db.Timestamp(6)
+  approved_destination_id  Int?
+  destination_approved     destination? @relation("approved_destination", fields: [approved_destination_id], references: [destination_id], onDelete: SetNull, onUpdate: NoAction)
+  guide                    guide?       @relation(fields: [guide_id], references: [guide_id], onDelete: SetNull, onUpdate: NoAction)
+}
+
 model message {
   message_id               Int       @id @default(autoincrement())
   sender_id                Int
@@ -135,8 +197,10 @@ model message {
 model users {
   user_id                                         Int            @id @default(autoincrement())
   full_name                                       String         @db.VarChar(150)
+  username                                        String?        @unique @db.VarChar(80)
   email                                           String         @unique @db.VarChar(255)
   password                                        String         @db.VarChar(255)
+  profile_photo                                   String?
   phone                                           String?        @db.VarChar(50)
   role                                            String         @db.VarChar(20)
   created_at                                      DateTime?      @default(now()) @db.Timestamp(6)

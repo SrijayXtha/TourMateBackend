@@ -16,6 +16,13 @@ import {
   resolveIncident,
   getActivityLogs,
   deleteUser,
+  getDestinations,
+  createDestination,
+  updateDestination,
+  deleteDestination,
+  getDestinationRequests,
+  approveDestinationRequest,
+  rejectDestinationRequest,
 } from "../controllers/admin.controller";
 
 const router = Router();
@@ -60,5 +67,24 @@ router.patch("/incidents/:incidentId/resolve", authMiddleware, roleGuard(["admin
 
 // Activity logs
 router.get("/activities", authMiddleware, roleGuard(["admin"]), getActivityLogs);
+
+// Destination management
+router.get("/destinations", authMiddleware, roleGuard(["admin"]), getDestinations);
+router.post("/destinations", authMiddleware, roleGuard(["admin"]), createDestination);
+router.put("/destinations/:id", authMiddleware, roleGuard(["admin"]), updateDestination);
+router.delete("/destinations/:id", authMiddleware, roleGuard(["admin"]), deleteDestination);
+router.get("/destination-requests", authMiddleware, roleGuard(["admin"]), getDestinationRequests);
+router.patch(
+  "/destination-requests/:id/approve",
+  authMiddleware,
+  roleGuard(["admin"]),
+  approveDestinationRequest
+);
+router.patch(
+  "/destination-requests/:id/reject",
+  authMiddleware,
+  roleGuard(["admin"]),
+  rejectDestinationRequest
+);
 
 export default router;

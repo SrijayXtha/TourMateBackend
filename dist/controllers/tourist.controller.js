@@ -69,7 +69,9 @@ const getTouristProfile = async (req, res) => {
             select: {
                 user_id: true,
                 full_name: true,
+                username: true,
                 email: true,
+                profile_photo: true,
                 phone: true,
                 role: true,
                 created_at: true,
@@ -538,11 +540,25 @@ const updateTouristProfile = async (req, res) => {
         if (!userId) {
             return (0, response_1.sendError)(res, 401, "Unauthorized");
         }
-        const { fullName, phone, emergencyContact, preferences, } = req.body;
+        const { fullName, username, phone, emergencyContact, preferences, } = req.body;
+        const normalizedUsername = String(username || "").trim();
+        if (normalizedUsername) {
+            const existingUsername = await prisma_1.prisma.users.findFirst({
+                where: {
+                    username: normalizedUsername,
+                    user_id: { not: userId },
+                },
+                select: { user_id: true },
+            });
+            if (existingUsername) {
+                return (0, response_1.sendError)(res, 409, "Username is already taken");
+            }
+        }
         await prisma_1.prisma.users.update({
             where: { user_id: userId },
             data: {
                 full_name: fullName?.trim() || undefined,
+                username: normalizedUsername || undefined,
                 phone: phone?.trim() || undefined,
             },
         });
@@ -558,6 +574,9 @@ const updateTouristProfile = async (req, res) => {
             },
         });
         return (0, response_1.sendSuccess)(res, 200, "Tourist profile updated", {
+            full_name: fullName?.trim() || undefined,
+            username: normalizedUsername || undefined,
+            phone: phone?.trim() || undefined,
             emergencyContact: updatedTourist.emergency_contact,
             preferences: safeJsonParse(updatedTourist.preferences, []),
         });

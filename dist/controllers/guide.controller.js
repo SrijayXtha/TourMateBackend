@@ -1,8 +1,36 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendGuideMessage = exports.getGuideMessages = exports.deleteGuideNotification = exports.markGuideNotificationRead = exports.getGuideNotifications = exports.getGuideAnalytics = exports.getUpcomingTours = exports.updateGuideAvailability = exports.getGuideReviews = exports.updateGuideProfile = exports.rejectBooking = exports.acceptBooking = exports.getGuideBookings = exports.getGuideDashboard = exports.getGuideProfile = void 0;
+exports.sendGuideMessage = exports.getGuideMessages = exports.deleteGuideNotification = exports.markGuideNotificationRead = exports.getGuideNotifications = exports.getGuideAnalytics = exports.getUpcomingTours = exports.updateGuideAvailability = exports.getGuideReviews = exports.createGuideDestinationRequest = exports.getGuideDestinationRequests = exports.updateGuideProfile = exports.rejectBooking = exports.acceptBooking = exports.getGuideBookings = exports.getGuideDashboard = exports.getGuideProfile = void 0;
 const prisma_1 = require("../prisma");
 const response_1 = require("../utils/response");
+const normalizeText = (value) => String(value ?? "").trim();
+const parseJsonArray = (value) => {
+    if (!value) {
+        return [];
+    }
+    if (Array.isArray(value)) {
+        return value.map((item) => String(item ?? "").trim()).filter(Boolean);
+    }
+    if (typeof value === "string") {
+        try {
+            const parsed = JSON.parse(value);
+            if (Array.isArray(parsed)) {
+                return parsed.map((item) => String(item ?? "").trim()).filter(Boolean);
+            }
+        }
+        catch {
+            return value
+                .split(",")
+                .map((item) => item.trim())
+                .filter(Boolean);
+        }
+    }
+    return [];
+};
+const parseCoordinate = (value) => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+};
 const parsePagination = (pageValue, limitValue) => {
     const page = Math.max(1, Number.parseInt(String(pageValue || "1"), 10) || 1);
     const limit = Math.min(100, Math.max(1, Number.parseInt(String(limitValue || "20"), 10) || 20));
@@ -25,6 +53,7 @@ const getGuideProfile = async (req, res) => {
                 user_id: true,
                 full_name: true,
                 email: true,
+                profile_photo: true,
                 phone: true,
                 created_at: true,
             },
@@ -35,6 +64,11 @@ const getGuideProfile = async (req, res) => {
         const guide = await prisma_1.prisma.guide.findUnique({
             where: { guide_id: userId },
             include: {
+                guide_destination: {
+                    include: {
+                        destination: true,
+                    },
+                },
                 review: {
                     select: { rating: true },
                 },
@@ -52,11 +86,21 @@ const getGuideProfile = async (req, res) => {
             guide: {
                 bio: guide.bio,
                 experienceYears: guide.experience_years,
+                experienceLabel: guide.experience_label,
+                specialization: guide.specialization,
+                languages: parseJsonArray(guide.languages),
                 licenseNumber: guide.license_number,
+                licenseDocument: guide.license_document,
                 verifiedStatus: guide.verified_status,
                 isAvailable: guide.is_available,
                 averageRating: avgRating,
                 totalReviews: guide.review.length,
+                destinations: guide.guide_destination.map((item) => ({
+                    destinationId: item.destination.destination_id,
+                    name: item.destination.name,
+                    location: item.destination.location,
+                    category: item.destination.category,
+                })),
             },
         });
     }
@@ -295,20 +339,42 @@ const updateGuideProfile = async (req, res) => {
         if (!userId) {
             return (0, response_1.sendError)(res, 401, "Unauthorized");
         }
-        const { bio, experienceYears, isAvailable } = req.body;
-        const updated = await prisma_1.prisma.guide.update({
-            where: { guide_id: userId },
-            data: {
-                bio: bio || undefined,
-                experience_years: experienceYears !== undefined ? parseInt(experienceYears) : undefined,
-                is_available: typeof isAvailable === "boolean" ? isAvailable : undefined,
-            },
+        const { bio, experienceYears, isAvailable, destinationIds, languages } = req.body;
+        const normalizedLanguages = parseJsonArray(languages);
+        const normalizedDestinationIds = Array.isArray(destinationIds)
+            ? Array.from(new Set(destinationIds
+                .map((item) => Number.parseInt(String(item ?? ""), 10))
+                .filter((item) => Number.isInteger(item) && item > 0)))
+            : [];
+        const updated = await prisma_1.prisma.$transaction(async (tx) => {
+            const savedGuide = await tx.guide.update({
+                where: { guide_id: userId },
+                data: {
+                    bio: bio || undefined,
+                    experience_years: experienceYears !== undefined ? parseInt(experienceYears) : undefined,
+                    is_available: typeof isAvailable === "boolean" ? isAvailable : undefined,
+                    languages: normalizedLanguages.length > 0 ? JSON.stringify(normalizedLanguages) : undefined,
+                },
+            });
+            if (normalizedDestinationIds.length > 0) {
+                await tx.guide_destination.deleteMany({
+                    where: { guide_id: userId },
+                });
+                await tx.guide_destination.createMany({
+                    data: normalizedDestinationIds.map((destinationId) => ({
+                        guide_id: userId,
+                        destination_id: destinationId,
+                    })),
+                });
+            }
+            return savedGuide;
         });
         return (0, response_1.sendSuccess)(res, 200, "Profile updated", {
             bio: updated.bio,
             experienceYears: updated.experience_years,
             isAvailable: updated.is_available,
             verifiedStatus: updated.verified_status,
+            languages: parseJsonArray(updated.languages),
         });
     }
     catch (error) {
@@ -317,6 +383,104 @@ const updateGuideProfile = async (req, res) => {
     }
 };
 exports.updateGuideProfile = updateGuideProfile;
+/**
+ * GET /guide/destination-requests
+ * Get destination requests for the current guide
+ */
+const getGuideDestinationRequests = async (req, res) => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) {
+            return (0, response_1.sendError)(res, 401, "Unauthorized");
+        }
+        const requests = await prisma_1.prisma.destination_request.findMany({
+            where: { guide_id: userId },
+            include: {
+                destination_approved: true,
+            },
+            orderBy: { created_at: "desc" },
+        });
+        return (0, response_1.sendSuccess)(res, 200, "Destination requests retrieved", {
+            count: requests.length,
+            requests: requests.map((request) => ({
+                requestId: request.request_id,
+                destinationName: request.destination_name,
+                location: request.location,
+                reason: request.reason,
+                image: request.image,
+                latitude: request.latitude === null || request.latitude === undefined
+                    ? null
+                    : Number(request.latitude),
+                longitude: request.longitude === null || request.longitude === undefined
+                    ? null
+                    : Number(request.longitude),
+                status: request.status,
+                rejectionReason: request.rejection_reason,
+                approvedDestinationId: request.approved_destination_id,
+                approvedDestinationName: request.destination_approved?.name || null,
+                createdAt: request.created_at,
+                reviewedAt: request.reviewed_at,
+            })),
+        });
+    }
+    catch (error) {
+        console.error("Error getting guide destination requests:", error);
+        return (0, response_1.sendError)(res, 500, "Failed to get destination requests");
+    }
+};
+exports.getGuideDestinationRequests = getGuideDestinationRequests;
+/**
+ * POST /guide/destination-requests
+ * Create a destination request for the current guide
+ */
+const createGuideDestinationRequest = async (req, res) => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) {
+            return (0, response_1.sendError)(res, 401, "Unauthorized");
+        }
+        const destinationName = normalizeText(req.body.destinationName ?? req.body.name);
+        const location = normalizeText(req.body.location ?? req.body.address);
+        const reason = normalizeText(req.body.reason);
+        const image = normalizeText(req.body.image) || null;
+        const latitude = parseCoordinate(req.body.latitude);
+        const longitude = parseCoordinate(req.body.longitude);
+        const errors = {};
+        if (!destinationName)
+            errors.destinationName = "Destination name is required.";
+        if (!location)
+            errors.location = "Location is required.";
+        if (!reason)
+            errors.reason = "Reason for request is required.";
+        if (Object.keys(errors).length > 0) {
+            return res.status(400).json({
+                status: "error",
+                message: "Destination request validation failed",
+                errors,
+            });
+        }
+        const request = await prisma_1.prisma.destination_request.create({
+            data: {
+                guide_id: userId,
+                destination_name: destinationName,
+                location,
+                reason,
+                image,
+                latitude,
+                longitude,
+            },
+        });
+        return (0, response_1.sendSuccess)(res, 201, "Destination request submitted", {
+            requestId: request.request_id,
+            status: request.status,
+        });
+    }
+    catch (error) {
+        console.error("Error creating guide destination request:", error);
+        return (0, response_1.sendError)(res, 500, "Failed to submit destination request");
+    }
+};
+exports.createGuideDestinationRequest = createGuideDestinationRequest;
 /**
  * GET /guide/reviews
  * Get reviews for guide
